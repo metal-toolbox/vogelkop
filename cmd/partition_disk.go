@@ -3,7 +3,6 @@ package cmd
 import (
 	"strings"
 	"strconv"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 	// diskfs "github.com/diskfs/go-diskfs"
@@ -16,59 +15,48 @@ var (
 		Long: "Partitions a block device with a GPT table",
 		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			partitionDisk(cmd)
+			partitionDisk(GetString(cmd, "device"), GetStringSlice(cmd, "partitions"))
 		},
 	}
 )
 
 type Partition struct {
 	Name string
-	Position int
+	Position uint
 	Size string
 	Type string
+	Format string
+	FormatOptions []string
+	BlockDevice string
+	UUID string
+	MountPoint string
 }
 
 func init() {
 	partitionDiskCmd.PersistentFlags().String("device", "/dev/sda", "Device to be partitioned")
-	partitionDiskCmd.MarkPersistentFlagRequired("device")	
+	partitionDiskCmd.MarkPersistentFlagRequired("device")
 	partitionDiskCmd.PersistentFlags().StringSlice("partitions", []string{}, "Partition Definitions Name:Position:Size:Type")
 	rootCmd.AddCommand(partitionDiskCmd)
 }
 
-func partitionDisk(cmd *cobra.Command) {
-	s_parts, err := cmd.Flags().GetStringSlice("partitions")
-
-	if err != nil {
-		logger.Panicw("Error processing partitions parameter", "error", err)
-	}
-
+func partitionDisk(device string, s_parts []string) {
 	partitions := processPartitions(s_parts)
 	logger.Debugw("Processed partitions", "partitions", partitions)
 
-	disk, _ := cmd.Flags().GetString("device")
-
 	for _, partition := range partitions {
-		callSgdisk(disk, partition)
+		callSgdisk(device, partition)
 	}
 }
 
 func callSgdisk(disk string, partition Partition) {
 	position := strconv.FormatInt(int64(partition.Position),10)
 
-	cmd := exec.Command("sgdisk",
+	callCommand("sgdisk",
 		"-n", position + ":0:" + partition.Size,
 		"-c", position + ":" + partition.Name,
 		"-t", position + ":" + partition.Type,
 		disk,
 	)
-
-	logger.Debugw("running sgdisk", "cmd", cmd)
-
-	if out, err := cmd.CombinedOutput(); err != nil {
-		logger.Debugf("%s\n", out)
-		logger.Fatalw("Failed to run sgdisk",
-			"partition", partition, "cmd", cmd, "err", err, "stderr", out)
-	}
 }
 
 func processPartitions(s_partitions []string) (partitions []Partition) {
@@ -82,7 +70,7 @@ func processPartitions(s_partitions []string) (partitions []Partition) {
 
 		partition := Partition{
 			Name: s_partition[0],
-			Position: p_pos,
+			Position: uint(p_pos),
 			Size: s_partition[2],
 			Type: s_partition[3],
 		}

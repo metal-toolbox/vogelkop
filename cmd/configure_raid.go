@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"os/exec"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -13,7 +12,12 @@ var (
 		Short: "Configures software and hardware RAID",
 		Long: "Configures software and hardware RAID",
 		Run: func(cmd *cobra.Command, args []string) {
-			configureRaid(cmd)
+			configureRaid(
+				GetStringSlice(cmd, "devices"),
+				GetString(cmd, "name"),
+				GetString(cmd, "raid-type"),
+				GetString(cmd, "raid-level"),
+			)
 		},
 	}
 )
@@ -38,24 +42,16 @@ func init() {
 	rootCmd.AddCommand(configureRaidCmd)
 }
 
-func configureRaid(cmd *cobra.Command) {
-	s_devices, err := cmd.Flags().GetStringSlice("devices")
-
-	if err != nil {
-		logger.Panicw("Error processing devices parameter", "error", err)
-	}
-
+func configureRaid(s_devices []string, name string, raid_type string, raid_level string) {
 	// TODO(jwb) We should validate that the devices are valid / accessible here
 
 	array := RaidArray{
-		Name: GetString(cmd, "name"),
-		Level: GetString(cmd, "raid-level"),
+		Name: name,
+		Level: raid_level,
 		Devices: s_devices,
 	}
 
-	raidType := GetString(cmd, "raid-type")
-
-	switch raidType {
+	switch raid_type {
 	case "linuxsw":
 		callLinuxSWRaid(array)
 	}
@@ -66,13 +62,5 @@ func callLinuxSWRaid(array RaidArray) {
 		"--force", "--run", "--level", array.Level, "--raid-devices",
 		strconv.Itoa(len(array.Devices))}
 	cmd_args = append(cmd_args, array.Devices...)
-	cmd := exec.Command("mdadm", cmd_args...)
-	
-	logger.Debugw("running mdadm", "cmd", cmd)
-
-	if out, err := cmd.CombinedOutput(); err != nil {
-		logger.Debugf("%s\n", out)
-		logger.Fatalw("Failed to run mdadm",
-			"array", array, "cmd", cmd, "err", err, "stderr", out)
-	}
+	callCommand("mdadm", cmd_args...)
 }

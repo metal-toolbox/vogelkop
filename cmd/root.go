@@ -5,6 +5,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"vogelkop/internal"
+
+	"strconv"
+	"os/exec"
+	"strings"
+	"path/filepath"
 )
 
 var (
@@ -53,5 +58,67 @@ func GetString(cmd *cobra.Command, key string) (v string){
 		logger.Panicw("Error processing " + key + " parameter.", "error", err)
 	}
 
+	return
+}
+
+func GetUint(cmd *cobra.Command, key string) (v uint){
+	v, err := cmd.Flags().GetUint(key)
+	if err != nil {
+		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+	}
+
+	return
+}
+
+func GetStringSlice(cmd *cobra.Command, key string) (v []string) {
+	v, err := cmd.Flags().GetStringSlice(key)
+	if err != nil {
+		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+	}
+
+	return
+}
+
+func GetBool(cmd *cobra.Command, key string) (v bool) {
+	v, err := cmd.Flags().GetBool(key)
+	if err != nil {
+		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+	}
+
+	return
+}
+
+func callCommand(cmd_name string, cmd_options ...string) (out []byte, err error) {
+	cmd := exec.Command(cmd_name, cmd_options...)
+	logger.Debugw("running command", "cmd", cmd)
+	out, err = cmd.CombinedOutput()
+
+	if err != nil {
+		logger.Debugf("%s\n", out)
+		logger.Fatalw("Failed to run command",
+			"cmd", cmd, "err", err, "out", string(out))
+	}
+
+	logger.Debugw("command exited successfully", "cmd", cmd, "out", string(out))
+
+	return
+}
+
+func getPartitionBlockDevice(device string, partition Partition) (system_device string) {
+	position := strconv.FormatInt(int64(partition.Position),10)
+
+	if strings.Contains(device, "loop") {
+		system_device = getLoopPartitionBlockDevice(device, partition)
+	} else {
+		system_device = device + position
+	}
+
+	return
+}
+
+func getLoopPartitionBlockDevice(device string, partition Partition) (system_device string) {
+	position := strconv.FormatInt(int64(partition.Position),10)
+	device_file := filepath.Base(device)
+	system_device = "/dev/mapper/" + device_file + "p" + position
 	return
 }

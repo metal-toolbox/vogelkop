@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"github.com/spf13/cobra"
 
-	"vogelkop/internal"
+	"github.com/metal-toolbox/vogelkop/internal"
 
 	"strconv"
 	"os/exec"

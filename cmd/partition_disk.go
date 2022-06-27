@@ -34,7 +34,7 @@ type Partition struct {
 
 func init() {
 	partitionDiskCmd.PersistentFlags().String("device", "/dev/sda", "Device to be partitioned")
-	partitionDiskCmd.MarkPersistentFlagRequired("device")
+	markFlagAsRequired("device")
 	partitionDiskCmd.PersistentFlags().StringSlice("partitions", []string{}, "Partition Definitions Name:Position:Size:Type")
 	rootCmd.AddCommand(partitionDiskCmd)
 }
@@ -51,7 +51,7 @@ func partitionDisk(device string, s_parts []string) {
 func callSgdisk(disk string, partition Partition) {
 	position := strconv.FormatInt(int64(partition.Position),10)
 
-	callCommand("sgdisk",
+	_, _ = callCommand("sgdisk",
 		"-n", position + ":0:" + partition.Size,
 		"-c", position + ":" + partition.Name,
 		"-t", position + ":" + partition.Type,

@@ -32,13 +32,13 @@ func init() {
 	configureRaidCmd.PersistentFlags().String("raid-type", "linuxsw", "RAID Type (linuxsw,dellperc,etc)")
 
 	configureRaidCmd.PersistentFlags().StringSlice("devices", []string{}, "List of underlying physical volumes.")
-	configureRaidCmd.MarkPersistentFlagRequired("devices")
+	markFlagAsRequired("devices")
 
 	configureRaidCmd.PersistentFlags().String("raid-level", "1", "RAID Level")
 
 	configureRaidCmd.PersistentFlags().String("name", "unknown", "RAID Volume Name")
-	configureRaidCmd.MarkPersistentFlagRequired("name")
-
+	markFlagAsRequired("name")
+	
 	rootCmd.AddCommand(configureRaidCmd)
 }
 
@@ -62,5 +62,5 @@ func callLinuxSWRaid(array RaidArray) {
 		"--force", "--run", "--level", array.Level, "--raid-devices",
 		strconv.Itoa(len(array.Devices))}
 	cmd_args = append(cmd_args, array.Devices...)
-	callCommand("mdadm", cmd_args...)
+	_, _ = callCommand("mdadm", cmd_args...)
 }

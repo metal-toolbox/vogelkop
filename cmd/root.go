@@ -43,9 +43,15 @@ func initLogging() {
 	}
 
 	logger = l.Sugar().With("app", version.Name(), "version", version.Version())
-	defer logger.Sync()
+	defer loggerSync()
 
 	logger.Debugw("Logger configured.")
+}
+
+func loggerSync() {
+	if err := logger.Sync(); err != nil {
+		logger.Panicw("logger failed to sync -- will this even work??", "err", err)
+	}
 }
 
 func Execute() {
@@ -121,4 +127,10 @@ func getLoopPartitionBlockDevice(device string, partition Partition) (system_dev
 	device_file := filepath.Base(device)
 	system_device = "/dev/mapper/" + device_file + "p" + position
 	return
+}
+
+func markFlagAsRequired(flag_name string) {
+	if err := configureRaidCmd.MarkPersistentFlagRequired(flag_name); err != nil {
+		logger.Panicw("failed to mark flag as persistent", "err", err)
+	}
 }

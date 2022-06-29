@@ -50,7 +50,7 @@ func initLogging() {
 
 func loggerSync() {
 	if err := logger.Sync(); err != nil {
-		logger.Panicw("logger failed to sync -- will this even work??", "err", err)
+		logger.Errorw("logger failed to sync", "err", err)
 	}
 }
 

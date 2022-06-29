@@ -10,44 +10,62 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
     ldflags:
       - -s -w
-      - -X go.hollow.sh/toolbox/version.appName={{.ProjectName}}
-      - -X go.hollow.sh/toolbox/version.version={{.Version}}
-      - -X go.hollow.sh/toolbox/version.commit={{.Commit}}
-      - -X go.hollow.sh/toolbox/version.date={{.Date}}
-      - -X go.hollow.sh/toolbox/version.builtBy=goreleaser
-
-archives:
-  -
-    id: go
-    format: tar.gz
-    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
-    replacements:
-      amd64: 64bit
-      386: 32bit
-      arm: ARM
-      arm64: ARM64
-      darwin: macOS
-      linux: Linux
-    files:
-      - README.md
+      - -X github.com/metal-toolbox/version.appName={{.ProjectName}}
+      - -X github.com/metal-toolbox/version.version={{.Version}}
+      - -X github.com/metal-toolbox/version.commit={{.Commit}}
+      - -X github.com/metal-toolbox/version.date={{.Date}}
+      - -X github.com/metal-toolbox/version.builtBy=goreleaser
 
 snapshot:
   name_template: "{{ .Tag }}-next"
 
 dockers:
   -
+    use: buildx
+    goos: linux
+    goarch: amd64
     image_templates:
-      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}"
-    dockerfile: Dockerfile
+    - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-amd64"
+    - "ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64"
     build_flag_templates:
+      - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
-    skip_push: false
+  -
+    use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+    - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-arm64v8"
+    - "ghcr.io/metal-toolbox/{{.ProjectName}}:latest-arm64v8"
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
 
+docker_manifests:
+  # https://goreleaser.com/customization/docker_manifest/
+  - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}
+    image_templates:
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Version }}-amd64
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Version }}-arm64v8
+  - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:latest
+    image_templates:
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-arm64v8
 
 release:
     disable: false

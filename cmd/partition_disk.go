@@ -34,7 +34,7 @@ type Partition struct {
 
 func init() {
 	partitionDiskCmd.PersistentFlags().String("device", "/dev/sda", "Device to be partitioned")
-	markFlagAsRequired("device")
+	markFlagAsRequired(partitionDiskCmd, "device")
 	partitionDiskCmd.PersistentFlags().StringSlice("partitions", []string{}, "Partition Definitions Name:Position:Size:Type")
 	rootCmd.AddCommand(partitionDiskCmd)
 }

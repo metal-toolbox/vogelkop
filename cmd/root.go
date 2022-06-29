@@ -129,8 +129,8 @@ func getLoopPartitionBlockDevice(device string, partition Partition) (system_dev
 	return
 }
 
-func markFlagAsRequired(flag_name string) {
-	if err := configureRaidCmd.MarkPersistentFlagRequired(flag_name); err != nil {
+func markFlagAsRequired(cmd *cobra.Command, flag_name string) {
+	if err := cmd.MarkPersistentFlagRequired(flag_name); err != nil {
 		logger.Panicw("failed to mark flag as persistent", "err", err)
 	}
 }

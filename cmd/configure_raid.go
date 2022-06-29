@@ -32,12 +32,12 @@ func init() {
 	configureRaidCmd.PersistentFlags().String("raid-type", "linuxsw", "RAID Type (linuxsw,dellperc,etc)")
 
 	configureRaidCmd.PersistentFlags().StringSlice("devices", []string{}, "List of underlying physical volumes.")
-	markFlagAsRequired("devices")
+	markFlagAsRequired(configureRaidCmd, "devices")
 
 	configureRaidCmd.PersistentFlags().String("raid-level", "1", "RAID Level")
 
 	configureRaidCmd.PersistentFlags().String("name", "unknown", "RAID Volume Name")
-	markFlagAsRequired("name")
+	markFlagAsRequired(configureRaidCmd, "name")
 	
 	rootCmd.AddCommand(configureRaidCmd)
 }

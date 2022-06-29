@@ -39,7 +39,7 @@ func init() {
 	formatPartitionCmd.PersistentFlags().Uint("partition", 0, "Partition number")
 
 	formatPartitionCmd.PersistentFlags().String("format", "ext4", "Filesystem to be applied to the partition")
-	markFlagAsRequired("format")
+	markFlagAsRequired(formatPartitionCmd, "format")
 
 	formatPartitionCmd.PersistentFlags().String("mount-point", "/", "Filesystem mount point")
 	formatPartitionCmd.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")

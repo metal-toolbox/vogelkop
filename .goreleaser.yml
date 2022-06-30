@@ -60,8 +60,8 @@ docker_manifests:
   # https://goreleaser.com/customization/docker_manifest/
   - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}
     image_templates:
-      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Version }}-amd64
-      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Version }}-arm64v8
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-amd64
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-arm64v8
   - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:latest
     image_templates:
       - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64

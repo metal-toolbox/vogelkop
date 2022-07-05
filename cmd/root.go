@@ -50,7 +50,7 @@ func initLogging() {
 
 func loggerSync() {
 	if err := logger.Sync(); err != nil {
-		logger.Errorw("logger failed to sync", "err", err)
+		logger.Debugw("logger failed to sync", "err", err)
 	}
 }
 
@@ -96,7 +96,7 @@ func GetBool(cmd *cobra.Command, key string) (v bool) {
 
 func callCommand(cmd_name string, cmd_options ...string) (out []byte, err error) {
 	cmd := exec.Command(cmd_name, cmd_options...)
-	logger.Debugw("running command", "cmd", cmd)
+	logger.Infow("running command", "cmd", cmd)
 	out, err = cmd.CombinedOutput()
 
 	if err != nil {
@@ -105,7 +105,7 @@ func callCommand(cmd_name string, cmd_options ...string) (out []byte, err error)
 			"cmd", cmd, "err", err, "out", string(out))
 	}
 
-	logger.Debugw("command exited successfully", "cmd", cmd, "out", string(out))
+	logger.Infow("command exited successfully", "cmd", cmd, "out", string(out))
 
 	return
 }

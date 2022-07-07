@@ -25,3 +25,7 @@ vogelkop
 
 # misc
 *.disk
+
+/dist
+cosign.key
+.vscode/

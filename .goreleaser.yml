@@ -25,8 +25,18 @@ builds:
       - -X github.com/metal-toolbox/version.date={{.Date}}
       - -X github.com/metal-toolbox/version.builtBy=goreleaser
 
+checksum:
+  name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
 
 dockers:
   -
@@ -66,6 +76,33 @@ docker_manifests:
     image_templates:
       - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64
       - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-arm64v8
+
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - "sign-blob"
+      - "--oidc-issuer=https://token.actions.githubusercontent.com"
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+    artifacts: all
+    output: true
+
+docker_signs:
+  - cmd: cosign
+    args:
+      - "sign"
+      - "--oidc-issuer=https://token.actions.githubusercontent.com"
+      - "${artifact}"
+    artifacts: all
+    output: true
+    
+sboms:
+  - artifacts: archive
+  - id: source
+    artifacts: source
 
 release:
     disable: false

@@ -28,7 +28,7 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "{{.Tag}}-next"
 
 changelog:
   sort: asc
@@ -42,7 +42,7 @@ dockers:
     goos: linux
     goarch: amd64
     image_templates:
-      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-amd64"
+      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-amd64"
       - "ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64"
     build_flag_templates:
       - "--platform=linux/amd64"
@@ -54,7 +54,7 @@ dockers:
     goos: linux
     goarch: arm64
     image_templates:
-      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-arm64v8"
+      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-arm64v8"
       - "ghcr.io/metal-toolbox/{{.ProjectName}}:latest-arm64v8"
     build_flag_templates:
       - "--platform=linux/arm64/v8"
@@ -65,10 +65,10 @@ dockers:
 
 docker_manifests:
   # https://goreleaser.com/customization/docker_manifest/
-  - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}
+  - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}
     image_templates:
-      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-amd64
-      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{ .Tag }}-arm64v8
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-amd64
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-arm64v8
   - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:latest
     image_templates:
       - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64

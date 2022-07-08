@@ -2,7 +2,9 @@ name: goreleaser
 
 on:
   push:
-    branches: ['main', 'cpr-0']
+    branches:
+      - main
+    pull_request:
 
 jobs:
   golangci:
@@ -12,21 +14,17 @@ jobs:
       id-token: write
       packages: write
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      -
-        name: Set up Go
+      - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.18
 
-      -
-        name: Run golangci-lint
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.46.2
           args: --timeout=5m
-          

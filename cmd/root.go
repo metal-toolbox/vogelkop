@@ -1,15 +1,14 @@
 package cmd
 
 import (
-	"go.uber.org/zap"
-	"github.com/spf13/cobra"
-
-	"github.com/metal-toolbox/vogelkop/internal"
-
 	"strconv"
 	"os/exec"
 	"strings"
 	"path/filepath"
+	
+	"go.uber.org/zap"
+	"github.com/spf13/cobra"
+	"github.com/metal-toolbox/vogelkop/internal"
 )
 
 var (

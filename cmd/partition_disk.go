@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	// diskfs "github.com/diskfs/go-diskfs"
 )
 
 var (

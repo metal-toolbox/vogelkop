@@ -64,18 +64,18 @@ func formatPartition(device string, filesystem_device string, partition_number u
 
 	switch f := partition.Format; f {
 	case "swap":
-		_, _ = callCommand("mkswap", partition.BlockDevice)
+		_ = callCommand("mkswap", partition.BlockDevice)
 	default:
 		mkfs_options := []string{"-F"}
 		mkfs_options = append(mkfs_options, partition.FormatOptions...)
 		mkfs_options = append(mkfs_options, partition.BlockDevice)
-		_, _ = callCommand("mkfs." + partition.Format, mkfs_options...)
+		_ = callCommand("mkfs." + partition.Format, mkfs_options...)
 	}
 
 	partition.UUID = getBlockDeviceUUID(partition.BlockDevice)
 }
 
 func getBlockDeviceUUID(device string) (uuid string) {
-	b_uuid, _ := callCommand("blkid", "-s", "UUID", "-o", "value", device)
+	b_uuid := callCommand("blkid", "-s", "UUID", "-o", "value", device)
 	return strings.TrimRight(string(b_uuid), "\n")
 }

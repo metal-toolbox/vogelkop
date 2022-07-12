@@ -93,10 +93,10 @@ func GetBool(cmd *cobra.Command, key string) (v bool) {
 	return
 }
 
-func callCommand(cmd_name string, cmd_options ...string) (out []byte, err error) {
+func callCommand(cmd_name string, cmd_options ...string) (out []byte) {
 	cmd := exec.Command(cmd_name, cmd_options...)
 	logger.Infow("running command", "cmd", cmd)
-	out, err = cmd.CombinedOutput()
+	out, err := cmd.CombinedOutput()
 
 	if err != nil {
 		logger.Debugf("%s\n", out)

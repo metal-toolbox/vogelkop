@@ -62,5 +62,5 @@ func callLinuxSWRaid(array RaidArray) {
 		"--force", "--run", "--level", array.Level, "--raid-devices",
 		strconv.Itoa(len(array.Devices))}
 	cmd_args = append(cmd_args, array.Devices...)
-	_, _ = callCommand("mdadm", cmd_args...)
+	_ = callCommand("mdadm", cmd_args...)
 }

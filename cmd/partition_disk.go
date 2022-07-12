@@ -50,7 +50,7 @@ func partitionDisk(device string, s_parts []string) {
 func callSgdisk(disk string, partition Partition) {
 	position := strconv.FormatInt(int64(partition.Position),10)
 
-	_, _ = callCommand("sgdisk",
+	_ = callCommand("sgdisk",
 		"-n", position + ":0:" + partition.Size,
 		"-c", position + ":" + partition.Name,
 		"-t", position + ":" + partition.Type,

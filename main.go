@@ -1,7 +1,7 @@
 package main
 
 import (
-	"vogelkop/cmd"
+	"github.com/metal-toolbox/vogelkop/cmd"
 )
 
 func main() {

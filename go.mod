@@ -1,4 +1,4 @@
-module vogelkop
+module github.com/metal-toolbox/vogelkop
 
 go 1.18
 

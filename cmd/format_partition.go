@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"strings"
-
 	"github.com/spf13/cobra"
+	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
 var (
@@ -20,14 +19,31 @@ var (
 				logger.Fatal("When using the --device parameter, the --partition number must be specified.")
 			}
 
-			formatPartition(
-				GetString(cmd, "device"),
-				GetString(cmd, "filesystem-device"),
-				GetUint(cmd, "partition"),
-				GetString(cmd, "format"),
-				GetString(cmd, "mount-point"),
-				GetStringSlice(cmd, "options"),
-			)
+			p_position := GetUint(cmd, "partition")
+			filesystem_device := GetString(cmd, "filesystem-device")
+
+			partition := &model.Partition{
+				Position: p_position,
+				FileSystem: GetString(cmd, "format"),
+				FileSystemOptions: GetStringSlice(cmd, "options"),
+				MountPoint: GetString(cmd, "mount-point"),
+			}
+
+			if (filesystem_device != "") {
+				partition.BlockDevice = &model.BlockDevice{
+					File: filesystem_device,
+				}
+			} else {
+				partition.BlockDevice = &model.BlockDevice{
+					File: getPartitionBlockDevice(GetString(cmd, "device"), *partition),
+				}
+			}
+
+			if err := partition.Format(); err != nil {
+				logger.Fatalw("failed to format partition", "err", err, "partition", partition)
+			}
+
+			// p_uuid, err = partition.GetUUID()
 		},
 	}
 )
@@ -44,38 +60,4 @@ func init() {
 	formatPartitionCmd.PersistentFlags().String("mount-point", "/", "Filesystem mount point")
 	formatPartitionCmd.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")
 	rootCmd.AddCommand(formatPartitionCmd)
-}
-
-func formatPartition(device string, filesystem_device string, partition_number uint,
-	format string, mount_point string, s_options []string) {
-
-	partition := Partition{
-		Position:      partition_number,
-		Format:        format,
-		FormatOptions: s_options,
-		MountPoint:    mount_point,
-	}
-
-	if (filesystem_device != "") {
-		partition.BlockDevice = filesystem_device
-	} else {
-		partition.BlockDevice = getPartitionBlockDevice(device, partition)
-	}
-
-	switch f := partition.Format; f {
-	case "swap":
-		_ = callCommand("mkswap", partition.BlockDevice)
-	default:
-		mkfs_options := []string{"-F"}
-		mkfs_options = append(mkfs_options, partition.FormatOptions...)
-		mkfs_options = append(mkfs_options, partition.BlockDevice)
-		_ = callCommand("mkfs." + partition.Format, mkfs_options...)
-	}
-
-	partition.UUID = getBlockDeviceUUID(partition.BlockDevice)
-}
-
-func getBlockDeviceUUID(device string) (uuid string) {
-	b_uuid := callCommand("blkid", "-s", "UUID", "-o", "value", device)
-	return strings.TrimRight(string(b_uuid), "\n")
 }

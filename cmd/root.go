@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"strconv"
-	"os/exec"
 	"strings"
 	"path/filepath"
 	
 	"go.uber.org/zap"
 	"github.com/spf13/cobra"
 	"github.com/metal-toolbox/vogelkop/internal"
+	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
 var (
@@ -93,23 +93,7 @@ func GetBool(cmd *cobra.Command, key string) (v bool) {
 	return
 }
 
-func callCommand(cmd_name string, cmd_options ...string) (out []byte) {
-	cmd := exec.Command(cmd_name, cmd_options...)
-	logger.Infow("running command", "cmd", cmd)
-	out, err := cmd.CombinedOutput()
-
-	if err != nil {
-		logger.Debugf("%s\n", out)
-		logger.Fatalw("Failed to run command",
-			"cmd", cmd, "err", err, "out", string(out))
-	}
-
-	logger.Infow("command exited successfully", "cmd", cmd, "out", string(out))
-
-	return
-}
-
-func getPartitionBlockDevice(device string, partition Partition) (system_device string) {
+func getPartitionBlockDevice(device string, partition model.Partition) (system_device string) {
 	position := strconv.FormatInt(int64(partition.Position),10)
 
 	if strings.Contains(device, "loop") {
@@ -121,7 +105,7 @@ func getPartitionBlockDevice(device string, partition Partition) (system_device 
 	return
 }
 
-func getLoopPartitionBlockDevice(device string, partition Partition) (system_device string) {
+func getLoopPartitionBlockDevice(device string, partition model.Partition) (system_device string) {
 	position := strconv.FormatInt(int64(partition.Position),10)
 	device_file := filepath.Base(device)
 	system_device = "/dev/mapper/" + device_file + "p" + position

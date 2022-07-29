@@ -1,32 +1,34 @@
 package cmd
 
 import (
-	"strconv"
-
+	"github.com/metal-toolbox/vogelkop/pkg/model"
 	"github.com/spf13/cobra"
 )
 
 var (
 	configureRaidCmd = &cobra.Command{
 		Use:   "configure-raid",
-		Short: "Configures software and hardware RAID",
-		Long: "Configures software and hardware RAID",
+		Short: "Configures various types of RAID",
+		Long: "Configures various types of RAID",
 		Run: func(cmd *cobra.Command, args []string) {
-			configureRaid(
-				GetStringSlice(cmd, "devices"),
-				GetString(cmd, "name"),
-				GetString(cmd, "raid-type"),
-				GetString(cmd, "raid-level"),
-			)
+			block_device_files := GetStringSlice(cmd, "devices")
+
+			if block_devices, err := model.NewBlockDevices(block_device_files...); err == nil {
+				raid_array := model.RaidArray{
+					Name: GetString(cmd, "name"),
+					Devices: block_devices,
+					Level: GetString(cmd, "raid-level"),
+				}
+
+				if err := raid_array.Create(GetString(cmd, "raid-type")); err != nil {
+					logger.Fatalw("failed to create raid array", "err", err, "array", raid_array)
+				}
+			} else {
+				logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", block_device_files)
+			}
 		},
 	}
 )
-
-type RaidArray struct {
-	Name string
-	Devices []string
-	Level string
-}
 
 func init() {
 	configureRaidCmd.PersistentFlags().String("raid-type", "linuxsw", "RAID Type (linuxsw,dellperc,etc)")
@@ -40,27 +42,4 @@ func init() {
 	markFlagAsRequired(configureRaidCmd, "name")
 	
 	rootCmd.AddCommand(configureRaidCmd)
-}
-
-func configureRaid(s_devices []string, name string, raid_type string, raid_level string) {
-	// TODO(jwb) We should validate that the devices are valid / accessible here
-
-	array := RaidArray{
-		Name: name,
-		Level: raid_level,
-		Devices: s_devices,
-	}
-
-	switch raid_type {
-	case "linuxsw":
-		callLinuxSWRaid(array)
-	}
-}
-
-func callLinuxSWRaid(array RaidArray) {
-	cmd_args := []string{"--create", "/dev/md/" + array.Name,
-		"--force", "--run", "--level", array.Level, "--raid-devices",
-		strconv.Itoa(len(array.Devices))}
-	cmd_args = append(cmd_args, array.Devices...)
-	_ = callCommand("mdadm", cmd_args...)
 }

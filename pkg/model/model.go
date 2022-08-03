@@ -1,11 +1,15 @@
 package model
 
 import (
+	// "bytes"
 	"errors"
+	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
-	"os/exec"
+	// diskfs "github.com/diskfs/go-diskfs"
+	// losetup "github.com/freddierice/go-losetup/v2"
 	// "path/filepath"
 )
 
@@ -73,11 +77,28 @@ func NewPartition(name string, position uint, size string, ptype string) (p *Par
 	return
 }
 
+func NewBlockDevice(file string) (bd *BlockDevice, err error) {
+	bd = &BlockDevice{
+		File: file,
+	}
+
+	if !bd.Validate() {
+		err = errors.New("Block Device " + bd.File + " failed validation.")
+	}
+
+	return
+}
+
 // NewBlockDevices returns a slice of BlockDevice(s) for the supplied
 // slice of strings listing device files.
 func NewBlockDevices(s_devices ...string) (block_devices []*BlockDevice, err error) {
 	for _, dev := range s_devices {
-		block_devices = append(block_devices, &BlockDevice{File: dev})
+		bd, bd_err := NewBlockDevice(dev)
+		if err != nil {
+			return block_devices, bd_err
+		}
+
+		block_devices = append(block_devices, bd)
 	}
 
 	return
@@ -122,6 +143,7 @@ func (b BlockDevice) Validate() bool {
 }
 
 // Format prepares a Partition on a given BlockDevice with a file system
+// It returns an error object, or nil depending on the results.
 func (p Partition) Format() (err error) {
 	switch f := p.FileSystem; f {
 	case "swap":
@@ -142,9 +164,19 @@ func (p Partition) GetUUID() (string, error) {
 	return strings.TrimRight(string(b_uuid), "\n"), err
 }
 
-func callCommand(cmd_name string, cmd_options ...string) (out []byte, err error) {
-	cmd := exec.Command(cmd_name, cmd_options...)
-	out, err = cmd.CombinedOutput()
+func callCommand(cmd_name string, cmd_options ...string) (out string, err error) {
+	cmd_path, err := exec.LookPath(cmd_name)
+	if err != nil {
+		return
+	}
+	cmd := exec.Command(cmd_path, cmd_options...)
+	out_b, err := cmd.CombinedOutput()
+	out = string(out_b)
+
+	if err != nil {
+		err = fmt.Errorf("failed to execute %s: %s", cmd_path, err.Error())
+	}
+
 	return
 }
 
@@ -178,14 +210,15 @@ func (a RaidArray) CreateLinux() (err error) {
 	return
 }
 
-func (p Partition) Create() (err error) {
+func (p Partition) Create() (out string, err error) {
 	position := strconv.FormatInt(int64(p.Position),10)
-	_, err = callCommand("sgdisk",
+	out, err = callCommand("sgdisk",
 		"-n", position + ":0:" + p.Size,
 		"-c", position + ":" + p.Name,
 		"-t", position + ":" + p.Type,
 		p.BlockDevice.File,
 	)
+
 	return
 }
 

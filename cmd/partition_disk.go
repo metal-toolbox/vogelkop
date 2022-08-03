@@ -21,8 +21,8 @@ var (
 					logger.Fatalw("Failed to parse delimited partition data", "delimited_string", s_partition)
 				}
 
-				if err := p.Create(); err != nil {
-					logger.Fatalw("failed to create partition", "err", err, "partition", p)
+				if out, err := p.Create(); err != nil {
+					logger.Fatalw("failed to create partition", "err", err, "partition", p, "output", out)
 				}
 			}
 		},

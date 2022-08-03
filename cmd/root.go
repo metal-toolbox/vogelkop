@@ -24,7 +24,7 @@ var (
 func init() {
 	cobra.OnInitialize(initLogging)
 	rootCmd.PersistentFlags().Bool("debug", false, "Debug Mode")
-	rootCmd.PersistentFlags().String("log-level", "INFO", "Logging Level")
+	// rootCmd.PersistentFlags().String("log-level", "INFO", "Logging Level")
 }
 
 func initLogging() {

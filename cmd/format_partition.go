@@ -39,7 +39,7 @@ var (
 				}
 			}
 
-			if err := partition.Format(); err != nil {
+			if _, err := partition.Format(); err != nil {
 				logger.Fatalw("failed to format partition", "err", err, "partition", partition)
 			}
 

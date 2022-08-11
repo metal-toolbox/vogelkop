@@ -51,7 +51,7 @@ type Partition struct {
 
 // NewPartitionFromDelimited returns a Partition based upon
 // a delimited string value.
-func NewPartitionFromDelimited(delimited_string string) (p *Partition, err error) {
+func NewPartitionFromDelimited(delimited_string string, bd *BlockDevice) (p *Partition, err error) {
 	s_partition := strings.Split(delimited_string, ":")
 	p_pos, err := strconv.Atoi(s_partition[1])
 
@@ -60,6 +60,8 @@ func NewPartitionFromDelimited(delimited_string string) (p *Partition, err error
 	}
 
 	p, err = NewPartition(s_partition[0], uint(p_pos), s_partition[2], s_partition[3])
+	p.BlockDevice = bd
+
 	return
 }
 

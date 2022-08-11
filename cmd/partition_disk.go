@@ -13,10 +13,15 @@ var (
 		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			s_partitions := GetStringSlice(cmd, "partitions")
+			device := GetString(cmd, "device")
 
 			for _, s_partition := range s_partitions {
-				p, err := model.NewPartitionFromDelimited(s_partition)
+				bd, err := model.NewBlockDevice(device)
+				if err != nil {
+					logger.Fatalw("Failed to create BlockDevice", "err", err, "device", device)
+				}
 
+				p, err := model.NewPartitionFromDelimited(s_partition, bd)
 				if err != nil {
 					logger.Fatalw("Failed to parse delimited partition data", "delimited_string", s_partition)
 				}

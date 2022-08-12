@@ -11,20 +11,20 @@ var (
 		Short: "Configures various types of RAID",
 		Long: "Configures various types of RAID",
 		Run: func(cmd *cobra.Command, args []string) {
-			block_device_files := GetStringSlice(cmd, "devices")
+			blockDeviceFiles := GetStringSlice(cmd, "devices")
 
-			if block_devices, err := model.NewBlockDevices(block_device_files...); err == nil {
-				raid_array := model.RaidArray{
+			if blockDevices, err := model.NewBlockDevices(blockDeviceFiles...); err == nil {
+				raidArray := model.RaidArray{
 					Name: GetString(cmd, "name"),
-					Devices: block_devices,
+					Devices: blockDevices,
 					Level: GetString(cmd, "raid-level"),
 				}
 
-				if err := raid_array.Create(GetString(cmd, "raid-type")); err != nil {
-					logger.Fatalw("failed to create raid array", "err", err, "array", raid_array)
+				if err := raidArray.Create(GetString(cmd, "raid-type")); err != nil {
+					logger.Fatalw("failed to create raid array", "err", err, "array", raidArray)
 				}
 			} else {
-				logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", block_device_files)
+				logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", blockDeviceFiles)
 			}
 		},
 	}

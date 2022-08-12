@@ -1,42 +1,42 @@
 package model_test
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"testing"
-	"crypto/rand"
-	"encoding/hex"
 
 	diskfs "github.com/diskfs/go-diskfs"
 	losetup "github.com/freddierice/go-losetup/v2"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
-func cleanupTestDisk(image_name string, loopdev *losetup.Device) (err error) {
+func cleanupTestDisk(imageName string, loopdev *losetup.Device) (err error) {
 	if err = loopdev.Detach(); err != nil {
 		return
 	}
 
-	if err = os.Remove(image_name); err != nil {
+	if err = os.Remove(imageName); err != nil {
 		return
 	}
 
 	return
 }
 
-func prepareTestDisk(size int64) (loopdev losetup.Device, disk_img string, err error) {
-	disk_img = tempFileName("", "")
+func prepareTestDisk(size int64) (loopdev losetup.Device, diskImg string, err error) {
+	diskImg = tempFileName("", "")
 
 	var (
-		disk_size int64 = size * 1024 * 1024
+		diskSize int64 = size * 1024 * 1024
 	)
 
-	_, err = diskfs.Create(disk_img, disk_size, diskfs.Raw)
+	_, err = diskfs.Create(diskImg, diskSize, diskfs.Raw)
 	if err != nil {
 		return
 	}
 
-	loopdev, err = losetup.Attach(disk_img, 0, false)
+	loopdev, err = losetup.Attach(diskImg, 0, false)
 	if err != nil {
 		return
 	}
@@ -63,30 +63,31 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 	}
 
 	for _, p := range partitions {
-		var partition_bd *model.BlockDevice
+		var partitionBd *model.BlockDevice
 
-		partition_bd, err = model.NewBlockDevice(p.GetLoopBlockDevice())
+		partitionBd, err = model.NewBlockDevice(p.GetLoopBlockDevice())
 
 		if err != nil {
 			return
 		}
 
-		p.BlockDevice = partition_bd
+		p.BlockDevice = partitionBd
 	}
 
 	return
 }
 
-func kpartxAdd(device string) (k_out string, err error) {
-	k_out, err = model.CallCommand("kpartx", "-a", device)
+func kpartxAdd(device string) (out string, err error) {
+	out, err = model.CallCommand("kpartx", "-a", device)
 	return
 }
 
-func kpartxDel(device string) (k_out string, err error) {
-	k_out, err = model.CallCommand("kpartx", "-d", device)
+func kpartxDel(device string) (out string, err error) {
+	out, err = model.CallCommand("kpartx", "-d", device)
 	return
 }
 
+// tempFileName returns a 'random' filename with a given prefix and/or suffix
 func tempFileName(prefix, suffix string) string {
 	randBytes := make([]byte, 16)
 	_, _ = rand.Read(randBytes)
@@ -132,28 +133,28 @@ func TestConfigureRaid(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			var test_disks []struct {
-				loop       *losetup.Device
-				image_file string
+			var testDisks []struct {
+				loop      *losetup.Device
+				imageFile string
 			}
 
 			// Prepare underlying block devices (losetup)
 			for _, bd := range tc.BlockDevices {
-				loopdev, image_file, err := prepareTestDisk(1024)
+				loopdev, imageFile, err := prepareTestDisk(1024)
 				if err != nil {
 					t.Error(err)
 				}
 
-				t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, image_file)
+				t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, imageFile)
 
 				// Since we don't know the block device names ahead of time in this case
 				bd.File = loopdev.Path()
 
 				// We collect the disks for cleanup later
-				test_disks = append(test_disks, struct {
-					loop       *losetup.Device
-					image_file string
-				}{&loopdev, image_file})
+				testDisks = append(testDisks, struct {
+					loop      *losetup.Device
+					imageFile string
+				}{&loopdev, imageFile})
 
 				// Create partitions (see TestPartitionDisk)
 				if out, err := createPartitions(bd, bd.Partitions); err != nil {
@@ -201,13 +202,13 @@ func TestConfigureRaid(t *testing.T) {
 			}
 
 			// Cleanup
-			for _, l := range test_disks {
+			for _, l := range testDisks {
 				if k_out, err := kpartxDel(l.loop.Path()); err != nil {
 					t.Log(k_out)
 					t.Fatal(err)
 				}
 
-				if err := cleanupTestDisk(l.image_file, l.loop); err != nil {
+				if err := cleanupTestDisk(l.imageFile, l.loop); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -239,12 +240,12 @@ func TestPartitionDisk(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.testName, func(t *testing.T) {
-			loopdev, image_file, err := prepareTestDisk(tc.diskSize)
+			loopdev, imageFile, err := prepareTestDisk(tc.diskSize)
 			if err != nil {
 				t.Error(err)
 			}
 
-			t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, image_file)
+			t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, imageFile)
 
 			bd, err := model.NewBlockDevice(loopdev.Path())
 			if err != nil {
@@ -263,7 +264,7 @@ func TestPartitionDisk(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if err := cleanupTestDisk(image_file, &loopdev); err != nil {
+			if err := cleanupTestDisk(imageFile, &loopdev); err != nil {
 				t.Fatal(err)
 			}
 		})
@@ -288,12 +289,12 @@ func TestFormatPartition(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		loopdev, image_file, err := prepareTestDisk(tc.DiskSize)
+		loopdev, imageFile, err := prepareTestDisk(tc.DiskSize)
 		if err != nil {
 			t.Error(err)
 		}
 
-		t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, image_file)
+		t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, imageFile)
 
 		bd, err := model.NewBlockDevice(loopdev.Path())
 
@@ -315,12 +316,12 @@ func TestFormatPartition(t *testing.T) {
 
 		// TODO(jwb) Check that the filesystem was created properly.
 
-		if k_out, err := kpartxDel(loopdev.Path()); err != nil {
-			t.Log(k_out)
+		if out, err := kpartxDel(loopdev.Path()); err != nil {
+			t.Log(out)
 			t.Fatal(err)
 		}
 
-		if err := cleanupTestDisk(image_file, &loopdev); err != nil {
+		if err := cleanupTestDisk(imageFile, &loopdev); err != nil {
 			t.Fatal(err)
 		}
 	}

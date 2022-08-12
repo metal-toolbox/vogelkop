@@ -1,30 +1,29 @@
 package cmd
 
 import (
+	"path/filepath"
 	"strconv"
 	"strings"
-	"path/filepath"
-	
-	"go.uber.org/zap"
-	"github.com/spf13/cobra"
+
 	"github.com/metal-toolbox/vogelkop/internal"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var (
-	logger *zap.SugaredLogger
+	logger  *zap.SugaredLogger
 	rootCmd = &cobra.Command{
 		Version: version.Version(),
-		Use:   version.Name(),
-		Short: "Storage Management",
-		Long:  "Configures storage from controller to filesystem",
+		Use:     version.Name(),
+		Short:   "Storage Management",
+		Long:    "Configures storage from controller to filesystem",
 	}
 )
 
 func init() {
 	cobra.OnInitialize(initLogging)
 	rootCmd.PersistentFlags().Bool("debug", false, "Debug Mode")
-	// rootCmd.PersistentFlags().String("log-level", "INFO", "Logging Level")
 }
 
 func initLogging() {
@@ -57,19 +56,19 @@ func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 }
 
-func GetString(cmd *cobra.Command, key string) (v string){
+func GetString(cmd *cobra.Command, key string) (v string) {
 	v, err := cmd.Flags().GetString(key)
 	if err != nil {
-		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+		logger.Panicw("Error processing "+key+" parameter.", "error", err)
 	}
 
 	return
 }
 
-func GetUint(cmd *cobra.Command, key string) (v uint){
+func GetUint(cmd *cobra.Command, key string) (v uint) {
 	v, err := cmd.Flags().GetUint(key)
 	if err != nil {
-		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+		logger.Panicw("Error processing "+key+" parameter.", "error", err)
 	}
 
 	return
@@ -78,7 +77,7 @@ func GetUint(cmd *cobra.Command, key string) (v uint){
 func GetStringSlice(cmd *cobra.Command, key string) (v []string) {
 	v, err := cmd.Flags().GetStringSlice(key)
 	if err != nil {
-		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+		logger.Panicw("Error processing "+key+" parameter.", "error", err)
 	}
 
 	return
@@ -87,33 +86,33 @@ func GetStringSlice(cmd *cobra.Command, key string) (v []string) {
 func GetBool(cmd *cobra.Command, key string) (v bool) {
 	v, err := cmd.Flags().GetBool(key)
 	if err != nil {
-		logger.Panicw("Error processing " + key + " parameter.", "error", err)
+		logger.Panicw("Error processing "+key+" parameter.", "error", err)
 	}
 
 	return
 }
 
-func getPartitionBlockDevice(device string, partition model.Partition) (system_device string) {
-	position := strconv.FormatInt(int64(partition.Position),10)
+func getPartitionBlockDevice(device string, partition model.Partition) (systemDevice string) {
+	position := strconv.FormatInt(int64(partition.Position), 10)
 
 	if strings.Contains(device, "loop") {
-		system_device = getLoopPartitionBlockDevice(device, partition)
+		systemDevice = getLoopPartitionBlockDevice(device, partition)
 	} else {
-		system_device = device + position
+		systemDevice = device + position
 	}
 
 	return
 }
 
-func getLoopPartitionBlockDevice(device string, partition model.Partition) (system_device string) {
-	position := strconv.FormatInt(int64(partition.Position),10)
-	device_file := filepath.Base(device)
-	system_device = "/dev/mapper/" + device_file + "p" + position
+func getLoopPartitionBlockDevice(device string, partition model.Partition) (systemDevice string) {
+	position := strconv.FormatInt(int64(partition.Position), 10)
+	deviceFile := filepath.Base(device)
+	systemDevice = "/dev/mapper/" + deviceFile + "p" + position
 	return
 }
 
-func markFlagAsRequired(cmd *cobra.Command, flag_name string) {
-	if err := cmd.MarkPersistentFlagRequired(flag_name); err != nil {
+func markFlagAsRequired(cmd *cobra.Command, flagName string) {
+	if err := cmd.MarkPersistentFlagRequired(flagName); err != nil {
 		logger.Panicw("failed to mark flag as persistent", "err", err)
 	}
 }

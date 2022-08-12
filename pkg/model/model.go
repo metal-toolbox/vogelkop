@@ -51,15 +51,15 @@ type Partition struct {
 
 // NewPartitionFromDelimited returns a Partition based upon
 // a delimited string value.
-func NewPartitionFromDelimited(delimited_string string, bd *BlockDevice) (p *Partition, err error) {
-	s_partition := strings.Split(delimited_string, ":")
-	p_pos, err := strconv.Atoi(s_partition[1])
+func NewPartitionFromDelimited(delimitedString string, bd *BlockDevice) (p *Partition, err error) {
+	partition := strings.Split(delimitedString, ":")
+	pos, err := strconv.Atoi(partition[1])
 
 	if err != nil {
 		return
 	}
 
-	p, err = NewPartition(s_partition[0], uint(p_pos), s_partition[2], s_partition[3])
+	p, err = NewPartition(partition[0], uint(pos), partition[2], partition[3])
 	p.BlockDevice = bd
 
 	return
@@ -95,14 +95,14 @@ func NewBlockDevice(file string) (bd *BlockDevice, err error) {
 
 // NewBlockDevices returns a slice of BlockDevice(s) for the supplied
 // slice of strings listing device files.
-func NewBlockDevices(s_devices ...string) (block_devices []*BlockDevice, err error) {
-	for _, dev := range s_devices {
-		bd, bd_err := NewBlockDevice(dev)
+func NewBlockDevices(devices ...string) (blockDevices []*BlockDevice, err error) {
+	for _, dev := range devices {
+		bd, bdErr := NewBlockDevice(dev)
 		if err != nil {
-			return block_devices, bd_err
+			return blockDevices, bdErr
 		}
 
-		block_devices = append(block_devices, bd)
+		blockDevices = append(blockDevices, bd)
 	}
 
 	return
@@ -111,9 +111,9 @@ func NewBlockDevices(s_devices ...string) (block_devices []*BlockDevice, err err
 // GetDeviceFiles returns a slice of strings with all the device files
 // that make up the given RaidArray.
 // It returns a slice of strings and possibly an error.
-func (a RaidArray) GetDeviceFiles() (device_files []string, err error) {
+func (a RaidArray) GetDeviceFiles() (deviceFiles []string, err error) {
 	for _, dev := range a.Devices {
-		device_files = append(device_files, dev.File)
+		deviceFiles = append(deviceFiles, dev.File)
 	}
 
 	return
@@ -135,13 +135,13 @@ func (a RaidArray) ValidateDevices() (valid bool) {
 // Validate validates that the given block device is correct and accessible.
 // It returns an bool indicating pass/fail.
 func (b BlockDevice) Validate() bool {
-	resolved_path, err := filepath.EvalSymlinks(b.File)
+	resolvedPath, err := filepath.EvalSymlinks(b.File)
 
 	if err != nil {
 		return false
 	}
 
-	fi, err := os.Stat(resolved_path) // Returns err if file is not accessible
+	fi, err := os.Stat(resolvedPath) // Returns err if file is not accessible
 
 	if os.IsNotExist(err) {
 		return false
@@ -160,43 +160,43 @@ func (p Partition) Format() (out string, err error) {
 		out, err = CallCommand("mkswap", p.BlockDevice.File)
 	default:
 		// TODO(jwb) Check for the existence of mkfs.FileSystem here
-		mkfs_options := []string{"-F"}
-		mkfs_options = append(mkfs_options, p.FileSystemOptions...)
-		mkfs_options = append(mkfs_options, p.BlockDevice.File)
-		out, err = CallCommand("mkfs."+p.FileSystem, mkfs_options...)
+		mkfsOptions := []string{"-F"}
+		mkfsOptions = append(mkfsOptions, p.FileSystemOptions...)
+		mkfsOptions = append(mkfsOptions, p.BlockDevice.File)
+		out, err = CallCommand("mkfs."+p.FileSystem, mkfsOptions...)
 	}
 
 	return
 }
 
 func (p Partition) GetUUID() (string, error) {
-	b_uuid, err := CallCommand("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
-	return strings.TrimRight(string(b_uuid), "\n"), err
+	uuid, err := CallCommand("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
+	return strings.TrimRight(string(uuid), "\n"), err
 }
 
-func CallCommand(cmd_name string, cmd_options ...string) (out string, err error) {
-	cmd_path, err := exec.LookPath(cmd_name)
+func CallCommand(cmdName string, cmdOptions ...string) (out string, err error) {
+	cmdPath, err := exec.LookPath(cmdName)
 	if err != nil {
 		return
 	}
-	cmd := exec.Command(cmd_path, cmd_options...)
-	out_b, err := cmd.CombinedOutput()
-	out = string(out_b)
+	cmd := exec.Command(cmdPath, cmdOptions...)
+	outB, err := cmd.CombinedOutput()
+	out = string(outB)
 
 	if err != nil {
-		err = fmt.Errorf("failed to execute %s: %s", cmd_path, err.Error())
+		err = fmt.Errorf("failed to execute %s: %s", cmdPath, err.Error())
 	}
 
 	return
 }
 
-func (a RaidArray) Create(r_type string) (err error) {
+func (a RaidArray) Create(raidType string) (err error) {
 	if !a.ValidateDevices() {
 		err = errors.New("array devices failed validation")
 		return
 	}
 
-	switch r_type {
+	switch raidType {
 	case "linuxsw":
 		err = a.CreateLinux()
 	}
@@ -204,8 +204,8 @@ func (a RaidArray) Create(r_type string) (err error) {
 	return
 }
 
-func (a RaidArray) Disable(r_type string) (err error) {
-	switch r_type {
+func (a RaidArray) Disable(raidType string) (err error) {
+	switch raidType {
 	case "linuxsw":
 		err = a.DisableLinux()
 	}
@@ -218,8 +218,8 @@ func (a RaidArray) DisableLinux() (err error) {
 	return
 }
 
-func (a RaidArray) Delete(r_type string) (err error) {
-	switch r_type {
+func (a RaidArray) Delete(raidType string) (err error) {
+	switch raidType {
 	case "linuxsw":
 		err = a.DeleteLinux()
 	}
@@ -233,17 +233,17 @@ func (a RaidArray) DeleteLinux() (err error) {
 }
 
 func (a RaidArray) CreateLinux() (err error) {
-	device_files, err := a.GetDeviceFiles()
+	deviceFiles, err := a.GetDeviceFiles()
 
 	if err != nil {
 		return
 	}
 
-	cmd_args := []string{"--create", "/dev/md/" + a.Name,
+	cmdArgs := []string{"--create", "/dev/md/" + a.Name,
 		"--force", "--run", "--level", a.Level, "--raid-devices",
 		strconv.Itoa(len(a.Devices))}
-	cmd_args = append(cmd_args, device_files...)
-	_, err = CallCommand("mdadm", cmd_args...)
+	cmdArgs = append(cmdArgs, deviceFiles...)
+	_, err = CallCommand("mdadm", cmdArgs...)
 
 	return
 }
@@ -274,9 +274,9 @@ func (p Partition) GetBlockDevice() (system_device string) {
 }
 */
 
-func (p Partition) GetLoopBlockDevice() (system_device string) {
+func (p Partition) GetLoopBlockDevice() (systemDevice string) {
 	position := strconv.FormatInt(int64(p.Position),10)
-	device_file := filepath.Base(p.BlockDevice.File)
-	system_device = "/dev/mapper/" + device_file + "p" + position
+	deviceFile := filepath.Base(p.BlockDevice.File)
+	systemDevice = "/dev/mapper/" + deviceFile + "p" + position
 	return
 }

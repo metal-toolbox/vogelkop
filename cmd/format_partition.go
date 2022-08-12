@@ -19,19 +19,19 @@ var (
 				logger.Fatal("When using the --device parameter, the --partition number must be specified.")
 			}
 
-			p_position := GetUint(cmd, "partition")
-			filesystem_device := GetString(cmd, "filesystem-device")
+			pPosition := GetUint(cmd, "partition")
+			filesystemDevice := GetString(cmd, "filesystem-device")
 
 			partition := &model.Partition{
-				Position: p_position,
+				Position: pPosition,
 				FileSystem: GetString(cmd, "format"),
 				FileSystemOptions: GetStringSlice(cmd, "options"),
 				MountPoint: GetString(cmd, "mount-point"),
 			}
 
-			if (filesystem_device != "") {
+			if (filesystemDevice != "") {
 				partition.BlockDevice = &model.BlockDevice{
-					File: filesystem_device,
+					File: filesystemDevice,
 				}
 			} else {
 				partition.BlockDevice = &model.BlockDevice{
@@ -42,8 +42,6 @@ var (
 			if _, err := partition.Format(); err != nil {
 				logger.Fatalw("failed to format partition", "err", err, "partition", partition)
 			}
-
-			// p_uuid, err = partition.GetUUID()
 		},
 	}
 )

@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"context"
 
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
 )
 
 var partitionDiskCmd = &cobra.Command{
@@ -12,6 +13,8 @@ var partitionDiskCmd = &cobra.Command{
 	Long:  "Partitions a block device with a GPT table",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
+
 		partitions := GetStringSlice(cmd, "partitions")
 		device := GetString(cmd, "device")
 
@@ -26,7 +29,7 @@ var partitionDiskCmd = &cobra.Command{
 				logger.Fatalw("Failed to parse delimited partition data", "delimited_string", partition)
 			}
 
-			if out, err := p.Create(); err != nil {
+			if out, err := p.Create(ctx); err != nil {
 				logger.Fatalw("failed to create partition", "err", err, "partition", p, "output", out)
 			}
 		}

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"github.com/metal-toolbox/vogelkop/pkg/model"
@@ -11,6 +13,8 @@ var configureRaidCmd = &cobra.Command{
 	Short: "Configures various types of RAID",
 	Long:  "Configures various types of RAID",
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
+
 		blockDeviceFiles := GetStringSlice(cmd, "devices")
 
 		blockDevices, err := model.NewBlockDevices(blockDeviceFiles...)
@@ -24,7 +28,7 @@ var configureRaidCmd = &cobra.Command{
 			Level:   GetString(cmd, "raid-level"),
 		}
 
-		if err = raidArray.Create(GetString(cmd, "raid-type")); err != nil {
+		if err = raidArray.Create(ctx, GetString(cmd, "raid-type")); err != nil {
 			logger.Fatalw("failed to create raid array", "err", err, "array", raidArray)
 		}
 	},

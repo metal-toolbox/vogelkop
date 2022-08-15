@@ -1,6 +1,7 @@
 package model_test
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"os"
@@ -44,11 +45,11 @@ func prepareTestDisk(size int) (loopdev losetup.Device, diskImg string, err erro
 	return
 }
 
-func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out string, err error) {
+func createPartitions(ctx context.Context, bd *model.BlockDevice, partitions []*model.Partition) (out string, err error) {
 	for _, p := range partitions {
 		p.BlockDevice = bd
 
-		out, err = p.Create()
+		out, err = p.Create(ctx)
 
 		if err != nil {
 			return
@@ -57,7 +58,7 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 
 	// Since we are using loopback devices for this test, we need to use kpartx
 	// to make the partition devices accessible
-	out, err = kpartxAdd(bd.File)
+	out, err = kpartxAdd(ctx, bd.File)
 	if err != nil {
 		return
 	}
@@ -77,13 +78,13 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 	return out, err
 }
 
-func kpartxAdd(device string) (out string, err error) {
-	out, err = command.Call("kpartx", "-a", device)
+func kpartxAdd(ctx context.Context, device string) (out string, err error) {
+	out, err = command.Call(ctx, "kpartx", "-a", device)
 	return
 }
 
-func kpartxDel(device string) (out string, err error) {
-	out, err = command.Call("kpartx", "-d", device)
+func kpartxDel(ctx context.Context, device string) (out string, err error) {
+	out, err = command.Call(ctx, "kpartx", "-d", device)
 	return
 }
 
@@ -135,6 +136,8 @@ func TestConfigureRaid(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
+			ctx := context.Background()
+
 			var testDisks []struct {
 				loop      *losetup.Device
 				imageFile string
@@ -159,7 +162,7 @@ func TestConfigureRaid(t *testing.T) {
 				}{&loopdev, imageFile})
 
 				// Create partitions (see TestPartitionDisk)
-				if out, err := createPartitions(bd, bd.Partitions); err != nil {
+				if out, err := createPartitions(ctx, bd, bd.Partitions); err != nil {
 					t.Log(out)
 					t.Error(err)
 				}
@@ -180,7 +183,7 @@ func TestConfigureRaid(t *testing.T) {
 				}
 
 				// Apply the partition to the block device
-				if err := r.Create("linuxsw"); err != nil {
+				if err := r.Create(ctx, "linuxsw"); err != nil {
 					t.Error(err)
 				}
 
@@ -194,7 +197,7 @@ func TestConfigureRaid(t *testing.T) {
 
 			// Disable any active raid arrays
 			for _, r := range tc.RaidArrays {
-				if out, err := r.Delete("linuxsw"); err != nil {
+				if out, err := r.Delete(ctx, "linuxsw"); err != nil {
 					t.Log(out)
 					t.Error(err)
 				}
@@ -202,7 +205,7 @@ func TestConfigureRaid(t *testing.T) {
 
 			// Cleanup
 			for _, l := range testDisks {
-				if out, err := kpartxDel(l.loop.Path()); err != nil {
+				if out, err := kpartxDel(ctx, l.loop.Path()); err != nil {
 					t.Log(out)
 					t.Fatal(err)
 				}
@@ -239,6 +242,8 @@ func TestPartitionDisk(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.testName, func(t *testing.T) {
+			ctx := context.Background()
+
 			loopdev, imageFile, err := prepareTestDisk(tc.diskSize)
 			if err != nil {
 				t.Error(err)
@@ -251,14 +256,14 @@ func TestPartitionDisk(t *testing.T) {
 				t.Error(err)
 			}
 
-			if out, err := createPartitions(bd, tc.partitions); err != nil {
+			if out, err := createPartitions(ctx, bd, tc.partitions); err != nil {
 				t.Log(out)
 				t.Error(err)
 			}
 
 			// TODO(jwb) We should do something to actually validate that the partiton structure on disk matches our expectations.
 
-			if out, err := kpartxDel(loopdev.Path()); err != nil {
+			if out, err := kpartxDel(ctx, loopdev.Path()); err != nil {
 				t.Log(out)
 				t.Fatal(err)
 			}
@@ -288,6 +293,8 @@ func TestFormatPartition(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		ctx := context.Background()
+
 		loopdev, imageFile, err := prepareTestDisk(tc.DiskSize)
 		if err != nil {
 			t.Error(err)
@@ -300,13 +307,13 @@ func TestFormatPartition(t *testing.T) {
 			t.Error(err)
 		}
 
-		if out, err := createPartitions(bd, tc.Partitions); err != nil {
+		if out, err := createPartitions(ctx, bd, tc.Partitions); err != nil {
 			t.Log(out)
 			t.Error(err)
 		}
 
 		for _, p := range tc.Partitions {
-			if out, err := p.Format(); err != nil {
+			if out, err := p.Format(ctx); err != nil {
 				t.Log(out)
 				t.Error(err)
 			}
@@ -314,7 +321,7 @@ func TestFormatPartition(t *testing.T) {
 
 		// TODO(jwb) Check that the filesystem was created properly.
 
-		if out, err := kpartxDel(loopdev.Path()); err != nil {
+		if out, err := kpartxDel(ctx, loopdev.Path()); err != nil {
 			t.Log(out)
 			t.Fatal(err)
 		}

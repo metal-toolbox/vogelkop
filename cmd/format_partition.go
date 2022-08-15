@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"github.com/metal-toolbox/vogelkop/pkg/model"
@@ -11,6 +13,8 @@ var formatPartitionCmd = &cobra.Command{
 	Short: "Formats a partition",
 	Long:  "Formats a partition with your choice of filesystem",
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
+
 		if GetString(cmd, "device") == "" && GetString(cmd, "filesystem-device") == "" {
 			logger.Fatal("Either --device or --filesystem-device are required.")
 		}
@@ -39,7 +43,7 @@ var formatPartitionCmd = &cobra.Command{
 			}
 		}
 
-		if _, err := partition.Format(); err != nil {
+		if _, err := partition.Format(ctx); err != nil {
 			logger.Fatalw("failed to format partition", "err", err, "partition", partition)
 		}
 	},

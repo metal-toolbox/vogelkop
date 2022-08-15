@@ -55,6 +55,7 @@ var (
 	ErrFailedExecution             = errors.New("failed execution")
 	ErrArrayDeviceFailedValidation = errors.New("array device failed validation")
 	ErrInvalidRaidType             = errors.New("invalid raid type")
+	ErrInvalidDelimitedPartition   = errors.New("invalid delimited partition string")
 )
 
 func FailedExecutionError(cmdPath, errMsg string) error {
@@ -77,10 +78,20 @@ func InvalidRaidTypeError(raidType string) error {
 	return fmt.Errorf("InvalidRaidType %w : %s", ErrInvalidRaidType, raidType)
 }
 
+func InvalidDelimitedPartitionError(delimitedString string) error {
+	return fmt.Errorf("InvalidDelimitedPartition %w : %s", ErrInvalidDelimitedPartition, delimitedString)
+}
+
 // NewPartitionFromDelimited returns a Partition based upon
 // a delimited string value.
 func NewPartitionFromDelimited(delimitedString string, bd *BlockDevice) (p *Partition, err error) {
 	partition := strings.Split(delimitedString, ":")
+
+	if len(partition) != 4 {
+		err = InvalidDelimitedPartitionError(delimitedString)
+		return
+	}
+
 	pos, err := strconv.Atoi(partition[1])
 	if err != nil {
 		return

@@ -35,7 +35,7 @@ var formatPartitionCmd = &cobra.Command{
 			}
 		} else {
 			partition.BlockDevice = &model.BlockDevice{
-				File: getPartitionBlockDevice(GetString(cmd, "device"), partition),
+				File: partition.GetBlockDevice(GetString(cmd, "device")),
 			}
 		}
 

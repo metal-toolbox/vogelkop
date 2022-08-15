@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"fmt"
-	"os/exec"
 )
 
 type StorageLayout struct {
@@ -24,15 +23,10 @@ type FileSystem struct {
 var (
 	ErrFailedPartitioning          = errors.New("failed partitioning")
 	ErrBlockDeviceFailedValidation = errors.New("block device failed validation")
-	ErrFailedExecution             = errors.New("failed execution")
 	ErrArrayDeviceFailedValidation = errors.New("array device failed validation")
 	ErrInvalidRaidType             = errors.New("invalid raid type")
 	ErrInvalidDelimitedPartition   = errors.New("invalid delimited partition string")
 )
-
-func FailedExecutionError(cmdPath, errMsg string) error {
-	return fmt.Errorf("FailedExecution %w : %s \"%s\"", ErrFailedExecution, cmdPath, errMsg)
-}
 
 func BlockDeviceFailedValidationError(bd *BlockDevice) error {
 	return fmt.Errorf("BlockDeviceFailedValidation %w : %v", ErrBlockDeviceFailedValidation, bd)
@@ -52,23 +46,4 @@ func InvalidRaidTypeError(raidType string) error {
 
 func InvalidDelimitedPartitionError(delimitedString string) error {
 	return fmt.Errorf("InvalidDelimitedPartition %w : %s", ErrInvalidDelimitedPartition, delimitedString)
-}
-
-func CallCommand(cmdName string, cmdOptions ...string) (out string, err error) {
-	cmdPath, err := exec.LookPath(cmdName)
-	if err != nil {
-		return
-	}
-
-	cmd := exec.Command(cmdPath, cmdOptions...)
-
-	outB, err := cmd.CombinedOutput()
-	out = string(outB)
-
-	if err != nil {
-		err = FailedExecutionError(cmdPath, err.Error())
-		return
-	}
-
-	return
 }

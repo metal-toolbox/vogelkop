@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	version "github.com/metal-toolbox/vogelkop/internal"
+	version "github.com/metal-toolbox/vogelkop/internal/version"
+
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )

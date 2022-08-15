@@ -10,6 +10,7 @@ import (
 	diskfs "github.com/diskfs/go-diskfs"
 	losetup "github.com/freddierice/go-losetup/v2"
 
+	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
@@ -77,12 +78,12 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 }
 
 func kpartxAdd(device string) (out string, err error) {
-	out, err = model.CallCommand("kpartx", "-a", device)
+	out, err = command.Call("kpartx", "-a", device)
 	return
 }
 
 func kpartxDel(device string) (out string, err error) {
-	out, err = model.CallCommand("kpartx", "-d", device)
+	out, err = command.Call("kpartx", "-d", device)
 	return
 }
 

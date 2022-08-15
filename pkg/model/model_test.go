@@ -193,11 +193,8 @@ func TestConfigureRaid(t *testing.T) {
 
 			// Disable any active raid arrays
 			for _, r := range tc.RaidArrays {
-				if err := r.Disable("linuxsw"); err != nil {
-					t.Error(err)
-				}
-
-				if err := r.Delete("linuxsw"); err != nil {
+				if out, err := r.Delete("linuxsw"); err != nil {
+					t.Log(out)
 					t.Error(err)
 				}
 			}

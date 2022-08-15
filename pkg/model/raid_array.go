@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/metal-toolbox/vogelkop/internal/command"
@@ -36,7 +37,7 @@ func (a *RaidArray) ValidateDevices() (valid bool) {
 	return true
 }
 
-func (a *RaidArray) Create(raidType string) (err error) {
+func (a *RaidArray) Create(ctx context.Context, raidType string) (err error) {
 	if !a.ValidateDevices() {
 		err = ArrayDeviceFailedValidationError(a)
 		return
@@ -44,7 +45,7 @@ func (a *RaidArray) Create(raidType string) (err error) {
 
 	switch raidType {
 	case "linuxsw":
-		err = a.CreateLinux()
+		err = a.CreateLinux(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
 	}
@@ -52,15 +53,15 @@ func (a *RaidArray) Create(raidType string) (err error) {
 	return
 }
 
-func (a *RaidArray) DeleteLinux() (out string, err error) {
-	out, err = command.Call("mdadm", "--manage", "--stop", "/dev/md/"+a.Name)
+func (a *RaidArray) DeleteLinux(ctx context.Context) (out string, err error) {
+	out, err = command.Call(ctx, "mdadm", "--manage", "--stop", "/dev/md/"+a.Name)
 	return
 }
 
-func (a *RaidArray) Delete(raidType string) (out string, err error) {
+func (a *RaidArray) Delete(ctx context.Context, raidType string) (out string, err error) {
 	switch raidType {
 	case "linuxsw":
-		out, err = a.DeleteLinux()
+		out, err = a.DeleteLinux(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
 	}
@@ -68,7 +69,7 @@ func (a *RaidArray) Delete(raidType string) (out string, err error) {
 	return
 }
 
-func (a *RaidArray) CreateLinux() (err error) {
+func (a *RaidArray) CreateLinux(ctx context.Context) (err error) {
 	deviceFiles, err := a.GetDeviceFiles()
 	if err != nil {
 		return
@@ -80,7 +81,7 @@ func (a *RaidArray) CreateLinux() (err error) {
 		strconv.Itoa(len(a.Devices)),
 	}
 	cmdArgs = append(cmdArgs, deviceFiles...)
-	_, err = command.Call("mdadm", cmdArgs...)
+	_, err = command.Call(ctx, "mdadm", cmdArgs...)
 
 	return
 }

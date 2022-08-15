@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -59,28 +60,28 @@ func NewPartition(name string, position uint, size, ptype string) (p *Partition,
 
 // Format prepares a Partition on a given BlockDevice with a file system
 // It returns an error object, or nil depending on the results.
-func (p *Partition) Format() (out string, err error) {
+func (p *Partition) Format(ctx context.Context) (out string, err error) {
 	switch f := p.FileSystem; f {
 	case "swap":
-		out, err = command.Call("mkswap", p.BlockDevice.File)
+		out, err = command.Call(ctx, "mkswap", p.BlockDevice.File)
 	default:
 		mkfsOptions := []string{"-F"}
 		mkfsOptions = append(mkfsOptions, p.FileSystemOptions...)
 		mkfsOptions = append(mkfsOptions, p.BlockDevice.File)
-		out, err = command.Call("mkfs."+p.FileSystem, mkfsOptions...)
+		out, err = command.Call(ctx, "mkfs."+p.FileSystem, mkfsOptions...)
 	}
 
 	return
 }
 
-func (p *Partition) GetUUID() (string, error) {
-	uuid, err := command.Call("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
+func (p *Partition) GetUUID(ctx context.Context) (string, error) {
+	uuid, err := command.Call(ctx, "blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
 	return strings.TrimRight(uuid, "\n"), err
 }
 
-func (p *Partition) Create() (out string, err error) {
+func (p *Partition) Create(ctx context.Context) (out string, err error) {
 	position := strconv.FormatInt(int64(p.Position), 10)
-	out, err = command.Call("sgdisk",
+	out, err = command.Call(ctx, "sgdisk",
 		"-n", position+":0:"+p.Size,
 		"-c", position+":"+p.Name,
 		"-t", position+":"+p.Type,

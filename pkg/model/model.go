@@ -307,19 +307,17 @@ func (p *Partition) Create() (out string, err error) {
 	return
 }
 
-/*
-func (p *Partition) GetBlockDevice() (system_device string) {
- 	position := strconv.FormatInt(int64(p.Position),10)
+func (p *Partition) GetBlockDevice(device string) (systemDevice string) {
+	position := strconv.FormatInt(int64(p.Position), 10)
 
- 	if strings.Contains(p.BlockDevice.File, "loop") {
- 		system_device = p.GetLoopBlockDevice()
+	if strings.Contains(device, "loop") {
+		systemDevice = p.GetLoopBlockDevice()
 	} else {
-		system_device = p.BlockDevice.File + position
+		systemDevice = device + position
 	}
 
 	return
 }
-*/
 
 func (p *Partition) GetLoopBlockDevice() (systemDevice string) {
 	position := strconv.FormatInt(int64(p.Position), 10)

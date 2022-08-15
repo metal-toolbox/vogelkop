@@ -1,12 +1,7 @@
 package cmd
 
 import (
-	"path/filepath"
-	"strconv"
-	"strings"
-
 	version "github.com/metal-toolbox/vogelkop/internal"
-	"github.com/metal-toolbox/vogelkop/pkg/model"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -89,26 +84,6 @@ func GetBool(cmd *cobra.Command, key string) (v bool) {
 	if err != nil {
 		logger.Panicw("Error processing "+key+" parameter.", "error", err)
 	}
-
-	return
-}
-
-func getPartitionBlockDevice(device string, partition *model.Partition) (systemDevice string) {
-	position := strconv.FormatInt(int64(partition.Position), 10)
-
-	if strings.Contains(device, "loop") {
-		systemDevice = getLoopPartitionBlockDevice(device, partition)
-	} else {
-		systemDevice = device + position
-	}
-
-	return
-}
-
-func getLoopPartitionBlockDevice(device string, partition *model.Partition) (systemDevice string) {
-	position := strconv.FormatInt(int64(partition.Position), 10)
-	deviceFile := filepath.Base(device)
-	systemDevice = "/dev/mapper/" + deviceFile + "p" + position
 
 	return
 }

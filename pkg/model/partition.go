@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/metal-toolbox/vogelkop/internal/command"
 )
 
 type Partition struct {
@@ -60,25 +62,25 @@ func NewPartition(name string, position uint, size, ptype string) (p *Partition,
 func (p *Partition) Format() (out string, err error) {
 	switch f := p.FileSystem; f {
 	case "swap":
-		out, err = CallCommand("mkswap", p.BlockDevice.File)
+		out, err = command.Call("mkswap", p.BlockDevice.File)
 	default:
 		mkfsOptions := []string{"-F"}
 		mkfsOptions = append(mkfsOptions, p.FileSystemOptions...)
 		mkfsOptions = append(mkfsOptions, p.BlockDevice.File)
-		out, err = CallCommand("mkfs."+p.FileSystem, mkfsOptions...)
+		out, err = command.Call("mkfs."+p.FileSystem, mkfsOptions...)
 	}
 
 	return
 }
 
 func (p *Partition) GetUUID() (string, error) {
-	uuid, err := CallCommand("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
+	uuid, err := command.Call("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
 	return strings.TrimRight(uuid, "\n"), err
 }
 
 func (p *Partition) Create() (out string, err error) {
 	position := strconv.FormatInt(int64(p.Position), 10)
-	out, err = CallCommand("sgdisk",
+	out, err = command.Call("sgdisk",
 		"-n", position+":0:"+p.Size,
 		"-c", position+":"+p.Name,
 		"-t", position+":"+p.Type,

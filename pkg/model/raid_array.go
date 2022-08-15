@@ -2,6 +2,8 @@ package model
 
 import (
 	"strconv"
+
+	"github.com/metal-toolbox/vogelkop/internal/command"
 )
 
 type RaidArray struct {
@@ -51,7 +53,7 @@ func (a *RaidArray) Create(raidType string) (err error) {
 }
 
 func (a *RaidArray) DeleteLinux() (out string, err error) {
-	out, err = CallCommand("mdadm", "--manage", "--stop", "/dev/md/"+a.Name)
+	out, err = command.Call("mdadm", "--manage", "--stop", "/dev/md/"+a.Name)
 	return
 }
 
@@ -78,7 +80,7 @@ func (a *RaidArray) CreateLinux() (err error) {
 		strconv.Itoa(len(a.Devices)),
 	}
 	cmdArgs = append(cmdArgs, deviceFiles...)
-	_, err = CallCommand("mdadm", cmdArgs...)
+	_, err = command.Call("mdadm", cmdArgs...)
 
 	return
 }

@@ -9,6 +9,7 @@ import (
 
 	diskfs "github.com/diskfs/go-diskfs"
 	losetup "github.com/freddierice/go-losetup/v2"
+
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
@@ -24,12 +25,10 @@ func cleanupTestDisk(imageName string, loopdev *losetup.Device) (err error) {
 	return
 }
 
-func prepareTestDisk(size int64) (loopdev losetup.Device, diskImg string, err error) {
+func prepareTestDisk(size int) (loopdev losetup.Device, diskImg string, err error) {
 	diskImg = tempFileName("", "")
 
-	var (
-		diskSize int64 = size * 1024 * 1024
-	)
+	diskSize := int64(size) * 1024 * 1024
 
 	_, err = diskfs.Create(diskImg, diskSize, diskfs.Raw)
 	if err != nil {
@@ -74,7 +73,7 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 		p.BlockDevice = partitionBd
 	}
 
-	return
+	return out, err
 }
 
 func kpartxAdd(device string) (out string, err error) {
@@ -87,13 +86,15 @@ func kpartxDel(device string) (out string, err error) {
 	return
 }
 
-// tempFileName returns a 'random' filename with a given prefix and/or suffix
+// tempFileName returns a 'random' filename with a given prefix and/or suffix.
 func tempFileName(prefix, suffix string) string {
 	randBytes := make([]byte, 16)
 	_, _ = rand.Read(randBytes)
+
 	return filepath.Join(os.TempDir(), prefix+hex.EncodeToString(randBytes)+suffix)
 }
 
+//nolint:gocyclo // Will look to extract some of this into reusable chunks at a later date
 func TestConfigureRaid(t *testing.T) {
 	tests := []model.StorageLayout{
 		{
@@ -203,8 +204,8 @@ func TestConfigureRaid(t *testing.T) {
 
 			// Cleanup
 			for _, l := range testDisks {
-				if k_out, err := kpartxDel(l.loop.Path()); err != nil {
-					t.Log(k_out)
+				if out, err := kpartxDel(l.loop.Path()); err != nil {
+					t.Log(out)
 					t.Fatal(err)
 				}
 
@@ -218,19 +219,19 @@ func TestConfigureRaid(t *testing.T) {
 
 func TestPartitionDisk(t *testing.T) {
 	tests := []struct {
+		diskSize   int
 		testName   string
-		diskSize   int64
 		partitions []*model.Partition
 	}{
 		{
-			"small-simple", 100, []*model.Partition{
+			testName: "small-simple", diskSize: 100, partitions: []*model.Partition{
 				{Name: "BOOT", Position: 1, Size: "10M", Type: "ef00"},
 				{Name: "SWAP", Position: 2, Size: "16M", Type: "ef00"},
 				{Name: "ROOT", Position: 3, Size: "60M", Type: "ef00"},
 			},
 		},
 		{
-			"larger", 5000, []*model.Partition{
+			testName: "larger", diskSize: 5000, partitions: []*model.Partition{
 				{Name: "FIRST", Position: 1, Size: "+512M", Type: "ef00"},
 				{Name: "SECOND", Position: 2, Size: "+512M", Type: "8300"},
 				{Name: "THIRD", Position: 3, Size: "+2GB", Type: "8300"},
@@ -259,8 +260,8 @@ func TestPartitionDisk(t *testing.T) {
 
 			// TODO(jwb) We should do something to actually validate that the partiton structure on disk matches our expectations.
 
-			if k_out, err := kpartxDel(loopdev.Path()); err != nil {
-				t.Log(k_out)
+			if out, err := kpartxDel(loopdev.Path()); err != nil {
+				t.Log(out)
 				t.Fatal(err)
 			}
 
@@ -274,7 +275,7 @@ func TestPartitionDisk(t *testing.T) {
 func TestFormatPartition(t *testing.T) {
 	tests := []struct {
 		Name       string
-		DiskSize   int64
+		DiskSize   int
 		Partitions []*model.Partition
 	}{
 		{
@@ -297,7 +298,6 @@ func TestFormatPartition(t *testing.T) {
 		t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, imageFile)
 
 		bd, err := model.NewBlockDevice(loopdev.Path())
-
 		if err != nil {
 			t.Error(err)
 		}

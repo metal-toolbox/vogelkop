@@ -29,3 +29,6 @@ vogelkop
 /dist
 cosign.key
 .vscode/
+
+# added by lint-install
+out/

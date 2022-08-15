@@ -1,21 +1,21 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
 )
 
 var (
 	formatPartitionCmd = &cobra.Command{
 		Use:   "format-partition",
 		Short: "Formats a partition",
-		Long: "Formats a partition with your choice of filesystem",
+		Long:  "Formats a partition with your choice of filesystem",
 		Run: func(cmd *cobra.Command, args []string) {
-			if (GetString(cmd, "device") == "" && GetString(cmd, "filesystem-device") == "") {
+			if GetString(cmd, "device") == "" && GetString(cmd, "filesystem-device") == "" {
 				logger.Fatal("Either --device or --filesystem-device are required.")
 			}
 
-			if (GetString(cmd, "device") != "" && GetUint(cmd, "partition") == 0) {
+			if GetString(cmd, "device") != "" && GetUint(cmd, "partition") == 0 {
 				logger.Fatal("When using the --device parameter, the --partition number must be specified.")
 			}
 
@@ -23,19 +23,19 @@ var (
 			filesystemDevice := GetString(cmd, "filesystem-device")
 
 			partition := &model.Partition{
-				Position: pPosition,
-				FileSystem: GetString(cmd, "format"),
+				Position:          pPosition,
+				FileSystem:        GetString(cmd, "format"),
 				FileSystemOptions: GetStringSlice(cmd, "options"),
-				MountPoint: GetString(cmd, "mount-point"),
+				MountPoint:        GetString(cmd, "mount-point"),
 			}
 
-			if (filesystemDevice != "") {
+			if filesystemDevice != "" {
 				partition.BlockDevice = &model.BlockDevice{
 					File: filesystemDevice,
 				}
 			} else {
 				partition.BlockDevice = &model.BlockDevice{
-					File: getPartitionBlockDevice(GetString(cmd, "device"), *partition),
+					File: getPartitionBlockDevice(GetString(cmd, "device"), partition),
 				}
 			}
 

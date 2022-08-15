@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"path/filepath"
 )
 
 type StorageLayout struct {
@@ -25,28 +25,54 @@ type BlockDevice struct {
 
 type RaidArray struct {
 	Name    string         `json:"name"`
-	Devices []*BlockDevice `json:"devices"`
 	Level   string         `json:"level"`
+	Devices []*BlockDevice `json:"devices"`
 }
 
 type FileSystem struct {
 	Name       string   `json:"name"`
 	Format     string   `json:"format"`
-	Options    []string `json:"format_options"`
 	UUID       string   `json:"uuid"`
 	MountPoint string   `json:"mount_point"`
+	Options    []string `json:"format_options"`
 }
 
 type Partition struct {
-	Name              string       `json:"name"`
 	Position          uint         `json:"position"`
+	BlockDevice       *BlockDevice `json:"block_device"`
+	Name              string       `json:"name"`
 	Size              string       `json:"size"`
 	Type              string       `json:"type"`
 	FileSystem        string       `json:"file_system"`
-	FileSystemOptions []string     `json:"file_system_options"`
-	BlockDevice       *BlockDevice `json:"block_device"`
 	UUID              string       `json:"uuid"`
 	MountPoint        string       `json:"mount_point"`
+	FileSystemOptions []string     `json:"file_system_options"`
+}
+
+var ErrFailedPartitioning = errors.New("failed partitioning")
+var ErrBlockDeviceFailedValidation = errors.New("block device failed validation")
+var ErrFailedExecution = errors.New("failed execution")
+var ErrArrayDeviceFailedValidation = errors.New("array device failed validation")
+var ErrInvalidRaidType = errors.New("invalid raid type")
+
+func FailedExecutionError(cmdPath, errMsg string) error {
+	return fmt.Errorf("FailedExecution %w : %s \"%s\"", ErrFailedExecution, cmdPath, errMsg)
+}
+
+func BlockDeviceFailedValidationError(bd *BlockDevice) error {
+	return fmt.Errorf("BlockDeviceFailedValidation %w : %v", ErrBlockDeviceFailedValidation, bd)
+}
+
+func ArrayDeviceFailedValidationError(a *RaidArray) error {
+	return fmt.Errorf("ArrayDeviceFailedValidation %w : %v", ErrArrayDeviceFailedValidation, a)
+}
+
+func FailedPartitioningError(position uint) error {
+	return fmt.Errorf("FailedPartitioning %w : %d", ErrFailedPartitioning, position)
+}
+
+func InvalidRaidTypeError(raidType string) error {
+	return fmt.Errorf("InvalidRaidType %w : %s", ErrInvalidRaidType, raidType)
 }
 
 // NewPartitionFromDelimited returns a Partition based upon
@@ -65,9 +91,9 @@ func NewPartitionFromDelimited(delimitedString string, bd *BlockDevice) (p *Part
 	return
 }
 
-func NewPartition(name string, position uint, size string, ptype string) (p *Partition, err error) {
+func NewPartition(name string, position uint, size, ptype string) (p *Partition, err error) {
 	if position < 1 || position > 128 {
-		err = errors.New("Failed partitioning posititon: " + strconv.FormatUint(uint64(position), 10) + " A partition position must be >= 1 && <= 128")
+		err = FailedPartitioningError(position)
 		return
 	}
 
@@ -87,7 +113,8 @@ func NewBlockDevice(file string) (bd *BlockDevice, err error) {
 	}
 
 	if !bd.Validate() {
-		err = errors.New("Block Device " + bd.File + " failed validation.")
+		err = BlockDeviceFailedValidationError(bd)
+		return
 	}
 
 	return
@@ -154,12 +181,11 @@ func (b BlockDevice) Validate() bool {
 
 // Format prepares a Partition on a given BlockDevice with a file system
 // It returns an error object, or nil depending on the results.
-func (p Partition) Format() (out string, err error) {
+func (p *Partition) Format() (out string, err error) {
 	switch f := p.FileSystem; f {
 	case "swap":
 		out, err = CallCommand("mkswap", p.BlockDevice.File)
 	default:
-		// TODO(jwb) Check for the existence of mkfs.FileSystem here
 		mkfsOptions := []string{"-F"}
 		mkfsOptions = append(mkfsOptions, p.FileSystemOptions...)
 		mkfsOptions = append(mkfsOptions, p.BlockDevice.File)
@@ -169,7 +195,7 @@ func (p Partition) Format() (out string, err error) {
 	return
 }
 
-func (p Partition) GetUUID() (string, error) {
+func (p *Partition) GetUUID() (string, error) {
 	uuid, err := CallCommand("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
 	return strings.TrimRight(string(uuid), "\n"), err
 }
@@ -179,26 +205,31 @@ func CallCommand(cmdName string, cmdOptions ...string) (out string, err error) {
 	if err != nil {
 		return
 	}
+
 	cmd := exec.Command(cmdPath, cmdOptions...)
+
 	outB, err := cmd.CombinedOutput()
 	out = string(outB)
 
 	if err != nil {
-		err = fmt.Errorf("failed to execute %s: %s", cmdPath, err.Error())
+		err = FailedExecutionError(cmdPath, err.Error())
+		return
 	}
 
 	return
 }
 
-func (a RaidArray) Create(raidType string) (err error) {
+func (a *RaidArray) Create(raidType string) (err error) {
 	if !a.ValidateDevices() {
-		err = errors.New("array devices failed validation")
+		err = ArrayDeviceFailedValidationError(a)
 		return
 	}
 
 	switch raidType {
 	case "linuxsw":
 		err = a.CreateLinux()
+	default:
+		err = InvalidRaidTypeError(raidType)
 	}
 
 	return
@@ -208,13 +239,15 @@ func (a RaidArray) Disable(raidType string) (err error) {
 	switch raidType {
 	case "linuxsw":
 		err = a.DisableLinux()
+	default:
+		err = InvalidRaidTypeError(raidType)
 	}
 
 	return
 }
 
 func (a RaidArray) DisableLinux() (err error) {
-	_, err = CallCommand("mdadm", "--manage", "--stop", "/dev/md/" + a.Name)
+	_, err = CallCommand("mdadm", "--manage", "--stop", "/dev/md/"+a.Name)
 	return
 }
 
@@ -222,13 +255,15 @@ func (a RaidArray) Delete(raidType string) (err error) {
 	switch raidType {
 	case "linuxsw":
 		err = a.DeleteLinux()
+	default:
+		err = InvalidRaidTypeError(raidType)
 	}
 
 	return
 }
 
 func (a RaidArray) DeleteLinux() (err error) {
-	_, err = CallCommand("mdadm", "--manage", "--remove", "/dev/md/" + a.Name)
+	_, err = CallCommand("mdadm", "--manage", "--remove", "/dev/md/"+a.Name)
 	return
 }
 
@@ -248,7 +283,7 @@ func (a RaidArray) CreateLinux() (err error) {
 	return
 }
 
-func (p Partition) Create() (out string, err error) {
+func (p *Partition) Create() (out string, err error) {
 	position := strconv.FormatInt(int64(p.Position), 10)
 	out, err = CallCommand("sgdisk",
 		"-n", position+":0:"+p.Size,
@@ -261,7 +296,7 @@ func (p Partition) Create() (out string, err error) {
 }
 
 /*
-func (p Partition) GetBlockDevice() (system_device string) {
+func (p *Partition) GetBlockDevice() (system_device string) {
  	position := strconv.FormatInt(int64(p.Position),10)
 
  	if strings.Contains(p.BlockDevice.File, "loop") {
@@ -274,9 +309,10 @@ func (p Partition) GetBlockDevice() (system_device string) {
 }
 */
 
-func (p Partition) GetLoopBlockDevice() (systemDevice string) {
-	position := strconv.FormatInt(int64(p.Position),10)
+func (p *Partition) GetLoopBlockDevice() (systemDevice string) {
+	position := strconv.FormatInt(int64(p.Position), 10)
 	deviceFile := filepath.Base(p.BlockDevice.File)
 	systemDevice = "/dev/mapper/" + deviceFile + "p" + position
+
 	return
 }

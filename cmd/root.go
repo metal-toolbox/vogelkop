@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/metal-toolbox/vogelkop/internal"
-	"github.com/metal-toolbox/vogelkop/pkg/model"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"github.com/metal-toolbox/vogelkop/internal"
+	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
 var (
@@ -41,6 +41,7 @@ func initLogging() {
 	}
 
 	logger = l.Sugar().With("app", version.Name(), "version", version.Version())
+
 	defer loggerSync()
 
 	logger.Debugw("Logger configured.")
@@ -92,7 +93,7 @@ func GetBool(cmd *cobra.Command, key string) (v bool) {
 	return
 }
 
-func getPartitionBlockDevice(device string, partition model.Partition) (systemDevice string) {
+func getPartitionBlockDevice(device string, partition *model.Partition) (systemDevice string) {
 	position := strconv.FormatInt(int64(partition.Position), 10)
 
 	if strings.Contains(device, "loop") {
@@ -104,10 +105,11 @@ func getPartitionBlockDevice(device string, partition model.Partition) (systemDe
 	return
 }
 
-func getLoopPartitionBlockDevice(device string, partition model.Partition) (systemDevice string) {
+func getLoopPartitionBlockDevice(device string, partition *model.Partition) (systemDevice string) {
 	position := strconv.FormatInt(int64(partition.Position), 10)
 	deviceFile := filepath.Base(device)
 	systemDevice = "/dev/mapper/" + deviceFile + "p" + position
+
 	return
 }
 

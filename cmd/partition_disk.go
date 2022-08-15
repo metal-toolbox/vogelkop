@@ -9,8 +9,8 @@ var (
 	partitionDiskCmd = &cobra.Command{
 		Use:   "partition-disk",
 		Short: "Partitions a block device",
-		Long: "Partitions a block device with a GPT table",
-		Args: cobra.NoArgs,
+		Long:  "Partitions a block device with a GPT table",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			partitions := GetStringSlice(cmd, "partitions")
 			device := GetString(cmd, "device")

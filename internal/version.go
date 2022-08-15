@@ -1,7 +1,7 @@
 package version
 
 var (
-	name = "vogelkop"
+	name    = "vogelkop"
 	version = "0.2.0"
 )
 

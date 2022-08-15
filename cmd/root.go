@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
+	version "github.com/metal-toolbox/vogelkop/internal"
+	"github.com/metal-toolbox/vogelkop/pkg/model"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"github.com/metal-toolbox/vogelkop/internal"
-	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
 var (

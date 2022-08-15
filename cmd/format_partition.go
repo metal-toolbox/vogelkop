@@ -5,46 +5,44 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	formatPartitionCmd = &cobra.Command{
-		Use:   "format-partition",
-		Short: "Formats a partition",
-		Long:  "Formats a partition with your choice of filesystem",
-		Run: func(cmd *cobra.Command, args []string) {
-			if GetString(cmd, "device") == "" && GetString(cmd, "filesystem-device") == "" {
-				logger.Fatal("Either --device or --filesystem-device are required.")
-			}
+var formatPartitionCmd = &cobra.Command{
+	Use:   "format-partition",
+	Short: "Formats a partition",
+	Long:  "Formats a partition with your choice of filesystem",
+	Run: func(cmd *cobra.Command, args []string) {
+		if GetString(cmd, "device") == "" && GetString(cmd, "filesystem-device") == "" {
+			logger.Fatal("Either --device or --filesystem-device are required.")
+		}
 
-			if GetString(cmd, "device") != "" && GetUint(cmd, "partition") == 0 {
-				logger.Fatal("When using the --device parameter, the --partition number must be specified.")
-			}
+		if GetString(cmd, "device") != "" && GetUint(cmd, "partition") == 0 {
+			logger.Fatal("When using the --device parameter, the --partition number must be specified.")
+		}
 
-			pPosition := GetUint(cmd, "partition")
-			filesystemDevice := GetString(cmd, "filesystem-device")
+		pPosition := GetUint(cmd, "partition")
+		filesystemDevice := GetString(cmd, "filesystem-device")
 
-			partition := &model.Partition{
-				Position:          pPosition,
-				FileSystem:        GetString(cmd, "format"),
-				FileSystemOptions: GetStringSlice(cmd, "options"),
-				MountPoint:        GetString(cmd, "mount-point"),
-			}
+		partition := &model.Partition{
+			Position:          pPosition,
+			FileSystem:        GetString(cmd, "format"),
+			FileSystemOptions: GetStringSlice(cmd, "options"),
+			MountPoint:        GetString(cmd, "mount-point"),
+		}
 
-			if filesystemDevice != "" {
-				partition.BlockDevice = &model.BlockDevice{
-					File: filesystemDevice,
-				}
-			} else {
-				partition.BlockDevice = &model.BlockDevice{
-					File: getPartitionBlockDevice(GetString(cmd, "device"), partition),
-				}
+		if filesystemDevice != "" {
+			partition.BlockDevice = &model.BlockDevice{
+				File: filesystemDevice,
 			}
+		} else {
+			partition.BlockDevice = &model.BlockDevice{
+				File: getPartitionBlockDevice(GetString(cmd, "device"), partition),
+			}
+		}
 
-			if _, err := partition.Format(); err != nil {
-				logger.Fatalw("failed to format partition", "err", err, "partition", partition)
-			}
-		},
-	}
-)
+		if _, err := partition.Format(); err != nil {
+			logger.Fatalw("failed to format partition", "err", err, "partition", partition)
+		}
+	},
+}
 
 func init() {
 	formatPartitionCmd.PersistentFlags().String("device", "", "Block device")

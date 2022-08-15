@@ -27,9 +27,7 @@ func cleanupTestDisk(imageName string, loopdev *losetup.Device) (err error) {
 func prepareTestDisk(size int) (loopdev losetup.Device, diskImg string, err error) {
 	diskImg = tempFileName("", "")
 
-	var (
-		diskSize = int64(size) * 1024 * 1024
-	)
+	diskSize := int64(size) * 1024 * 1024
 
 	_, err = diskfs.Create(diskImg, diskSize, diskfs.Raw)
 	if err != nil {
@@ -51,7 +49,7 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 		out, err = p.Create()
 
 		if err != nil {
-			return
+			return out, err
 		}
 	}
 
@@ -59,7 +57,7 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 	// to make the partition devices accessible
 	out, err = kpartxAdd(bd.File)
 	if err != nil {
-		return
+		return out, err
 	}
 
 	for _, p := range partitions {
@@ -68,13 +66,13 @@ func createPartitions(bd *model.BlockDevice, partitions []*model.Partition) (out
 		partitionBd, err = model.NewBlockDevice(p.GetLoopBlockDevice())
 
 		if err != nil {
-			return
+			return out, err
 		}
 
 		p.BlockDevice = partitionBd
 	}
 
-	return
+	return out, err
 }
 
 func kpartxAdd(device string) (out string, err error) {
@@ -87,7 +85,7 @@ func kpartxDel(device string) (out string, err error) {
 	return
 }
 
-// tempFileName returns a 'random' filename with a given prefix and/or suffix
+// tempFileName returns a 'random' filename with a given prefix and/or suffix.
 func tempFileName(prefix, suffix string) string {
 	randBytes := make([]byte, 16)
 	_, _ = rand.Read(randBytes)
@@ -299,7 +297,6 @@ func TestFormatPartition(t *testing.T) {
 		t.Logf("Prepared test block device. device: %v, image_file: %v\n", loopdev, imageFile)
 
 		bd, err := model.NewBlockDevice(loopdev.Path())
-
 		if err != nil {
 			t.Error(err)
 		}

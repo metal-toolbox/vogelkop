@@ -49,11 +49,13 @@ type Partition struct {
 	FileSystemOptions []string     `json:"file_system_options"`
 }
 
-var ErrFailedPartitioning = errors.New("failed partitioning")
-var ErrBlockDeviceFailedValidation = errors.New("block device failed validation")
-var ErrFailedExecution = errors.New("failed execution")
-var ErrArrayDeviceFailedValidation = errors.New("array device failed validation")
-var ErrInvalidRaidType = errors.New("invalid raid type")
+var (
+	ErrFailedPartitioning          = errors.New("failed partitioning")
+	ErrBlockDeviceFailedValidation = errors.New("block device failed validation")
+	ErrFailedExecution             = errors.New("failed execution")
+	ErrArrayDeviceFailedValidation = errors.New("array device failed validation")
+	ErrInvalidRaidType             = errors.New("invalid raid type")
+)
 
 func FailedExecutionError(cmdPath, errMsg string) error {
 	return fmt.Errorf("FailedExecution %w : %s \"%s\"", ErrFailedExecution, cmdPath, errMsg)
@@ -80,7 +82,6 @@ func InvalidRaidTypeError(raidType string) error {
 func NewPartitionFromDelimited(delimitedString string, bd *BlockDevice) (p *Partition, err error) {
 	partition := strings.Split(delimitedString, ":")
 	pos, err := strconv.Atoi(partition[1])
-
 	if err != nil {
 		return
 	}
@@ -163,7 +164,6 @@ func (a RaidArray) ValidateDevices() (valid bool) {
 // It returns an bool indicating pass/fail.
 func (b BlockDevice) Validate() bool {
 	resolvedPath, err := filepath.EvalSymlinks(b.File)
-
 	if err != nil {
 		return false
 	}
@@ -197,7 +197,7 @@ func (p *Partition) Format() (out string, err error) {
 
 func (p *Partition) GetUUID() (string, error) {
 	uuid, err := CallCommand("blkid", "-s", "UUID", "-o", "value", p.BlockDevice.File)
-	return strings.TrimRight(string(uuid), "\n"), err
+	return strings.TrimRight(uuid, "\n"), err
 }
 
 func CallCommand(cmdName string, cmdOptions ...string) (out string, err error) {
@@ -269,14 +269,15 @@ func (a RaidArray) DeleteLinux() (err error) {
 
 func (a RaidArray) CreateLinux() (err error) {
 	deviceFiles, err := a.GetDeviceFiles()
-
 	if err != nil {
 		return
 	}
 
-	cmdArgs := []string{"--create", "/dev/md/" + a.Name,
+	cmdArgs := []string{
+		"--create", "/dev/md/" + a.Name,
 		"--force", "--run", "--level", a.Level, "--raid-devices",
-		strconv.Itoa(len(a.Devices))}
+		strconv.Itoa(len(a.Devices)),
+	}
 	cmdArgs = append(cmdArgs, deviceFiles...)
 	_, err = CallCommand("mdadm", cmdArgs...)
 

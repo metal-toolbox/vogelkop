@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/spf13/cobra v1.5.0
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.23.0
 )
 
 require (

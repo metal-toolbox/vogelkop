@@ -26,6 +26,7 @@ var (
 	ErrArrayDeviceFailedValidation = errors.New("array device failed validation")
 	ErrInvalidRaidType             = errors.New("invalid raid type")
 	ErrInvalidDelimitedPartition   = errors.New("invalid delimited partition string")
+	ErrVirtualDiskNotFound         = errors.New("virtual disk not found")
 )
 
 func BlockDeviceFailedValidationError(bd *BlockDevice) error {
@@ -47,3 +48,21 @@ func InvalidRaidTypeError(raidType string) error {
 func InvalidDelimitedPartitionError(delimitedString string) error {
 	return fmt.Errorf("InvalidDelimitedPartition %w : %s", ErrInvalidDelimitedPartition, delimitedString)
 }
+
+func VirtualDiskNotFoundError(a *RaidArray) error {
+	return fmt.Errorf("VirtualDiskNotFound %w : %v", ErrVirtualDiskNotFound, a)
+}
+
+// func (c contextKey) String() string {
+// 	return "model context logger key " + string(c)
+// }
+
+// func NewContext(l *zap.SugaredLogger) context.Context {
+// 	ctx := context.WithValue(context.Background(), contextLoggerKey, l)
+// 	return ctx
+// }
+
+// func LoggerValueFromContext(ctx context.Context) *zap.SugaredLogger {
+// 	logger, _ := ctx.Value(contextLoggerKey).(*zap.SugaredLogger)
+// 	return logger
+// }

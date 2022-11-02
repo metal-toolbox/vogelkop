@@ -4,13 +4,18 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/bmc-toolbox/common"
+	"github.com/metal-toolbox/ironlib"
+	"github.com/metal-toolbox/ironlib/actions"
+	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/vogelkop/internal/command"
 )
 
 type RaidArray struct {
-	Name    string         `json:"name"`
-	Level   string         `json:"level"`
-	Devices []*BlockDevice `json:"devices"`
+	Name                    string         `json:"name"`
+	Level                   string         `json:"level"`
+	Devices                 []*BlockDevice `json:"devices"`
+	ControllerVirtualDiskID int            `json:"controller_virtual_disk_id"`
 }
 
 // GetDeviceFiles returns a slice of strings with all the device files
@@ -46,6 +51,8 @@ func (a *RaidArray) Create(ctx context.Context, raidType string) (err error) {
 	switch raidType {
 	case "linuxsw":
 		err = a.CreateLinux(ctx)
+	case "hardware":
+		err = a.CreateHardware(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
 	}
@@ -62,6 +69,8 @@ func (a *RaidArray) Delete(ctx context.Context, raidType string) (out string, er
 	switch raidType {
 	case "linuxsw":
 		out, err = a.DeleteLinux(ctx)
+	case "hardware":
+		out, err = a.DeleteHardware(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
 	}
@@ -84,4 +93,77 @@ func (a *RaidArray) CreateLinux(ctx context.Context) (err error) {
 	_, err = command.Call(ctx, "mdadm", cmdArgs...)
 
 	return
+}
+
+func (a *RaidArray) CreateHardware(ctx context.Context) (err error) {
+	logrusLogger, err := command.ZapToLogrus(ctx)
+	if err != nil {
+		return
+	}
+
+	device, err := ironlib.New(logrusLogger)
+	if err != nil {
+		return
+	}
+
+	hardware, err := device.GetInventory(ctx, true)
+	if err != nil {
+		return
+	}
+
+	options := &model.CreateVirtualDiskOptions{
+		RaidMode:        a.Level,
+		PhysicalDiskIDs: []uint{0, 1},
+		Name:            a.Name,
+		BlockSize:       64,
+	}
+
+	// TODO(splaspood) We should pass the storage controller down here vs assuming
+	for _, sc := range hardware.StorageControllers {
+		if sc.Vendor == common.VendorMarvell {
+			err = actions.CreateVirtualDisk(ctx, sc, options)
+		}
+	}
+
+	return err
+}
+
+func (a *RaidArray) DeleteHardware(ctx context.Context) (out string, err error) {
+	logrusLogger, err := command.ZapToLogrus(ctx)
+	if err != nil {
+		return
+	}
+
+	device, err := ironlib.New(logrusLogger)
+	if err != nil {
+		return
+	}
+
+	hardware, err := device.GetInventory(ctx, true)
+	if err != nil {
+		return
+	}
+
+	for _, sc := range hardware.StorageControllers {
+		if sc.Vendor == common.VendorMarvell {
+			vds, verr := actions.ListVirtualDisks(ctx, sc)
+			if verr != nil {
+				return out, verr
+			}
+
+			for _, vd := range vds {
+				if vd.Name == a.Name {
+					options := &model.DestroyVirtualDiskOptions{
+						VirtualDiskID: a.ControllerVirtualDiskID,
+					}
+
+					err = actions.DestroyVirtualDisk(ctx, sc, options)
+					return out, err
+				}
+			}
+		}
+	}
+
+	err = VirtualDiskNotFoundError(a)
+	return out, err
 }

@@ -106,7 +106,7 @@ linters:
     - asciicheck
     - bodyclose
     - cyclop
-    - deadcode
+    #- deadcode
     - dogsled
     - dupl
     - durationcheck
@@ -128,7 +128,7 @@ linters:
     - goprintffuncname
     - gosimple
     - govet
-    - ifshort
+    #- ifshort
     - importas
     - ineffassign
     - makezero
@@ -142,10 +142,10 @@ linters:
     # disabling for the initial iteration of the linting tool
     # - promlinter
     - revive
-    - rowserrcheck
-    - sqlclosecheck
+    #- rowserrcheck
+    #- sqlclosecheck
     - staticcheck
-    - structcheck
+    #- structcheck
     - stylecheck
     - thelper
     - tparallel
@@ -153,8 +153,8 @@ linters:
     - unconvert
     - unparam
     - unused
-    - varcheck
-    - wastedassign
+    #- varcheck
+    #- wastedassign
     - whitespace
 
   # Disabled linters, due to being misaligned with Go practices

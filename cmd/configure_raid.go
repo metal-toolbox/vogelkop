@@ -48,7 +48,12 @@ var configureRaidCmd = &cobra.Command{
 				Level:   GetString(cmd, "raid-level"),
 			}
 
-			if err = raidArray.Create(ctx, GetString(cmd, "raid-type")); err != nil {
+			raidType := GetString(cmd, "raid-type")
+			if raidType == "" {
+				raidType = "linuxsw"
+			}
+
+			if err = raidArray.Create(ctx, raidType); err != nil {
 				logger.Fatalw("failed to create raid array", "err", err, "array", raidArray)
 			}
 		}

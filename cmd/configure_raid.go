@@ -25,35 +25,53 @@ var configureRaidCmd = &cobra.Command{
 				logger.Fatalw("failed to create raid array", "err", err, "array", raidArray, "output", out)
 			}
 		} else {
-			var blockDeviceIDs []int
-
-			for _, d := range GetStringSlice(cmd, "devices") {
-				intBlockDevice, err := strconv.Atoi(d)
-				if err != nil {
-					logger.Fatalw("failed to convert device id string to int", "err", err, "blockDeviceID", d)
-				}
-
-				blockDeviceIDs = append(blockDeviceIDs, intBlockDevice)
-			}
-
-			// TODO(splaspood) Handle looking up devices using ironlib/mvcli to generate this list?
-			blockDevices, err := model.NewBlockDevicesFromPhysicalDeviceIDs(blockDeviceIDs...)
-			if err != nil {
-				logger.Fatalw("failed to gather block devices from physical ids", "err", err, "devices", blockDeviceIDs)
-			}
-
-			raidArray := model.RaidArray{
-				Name:    GetString(cmd, "name"),
-				Devices: blockDevices,
-				Level:   GetString(cmd, "raid-level"),
-			}
-
 			raidType := GetString(cmd, "raid-type")
 			if raidType == "" {
 				raidType = "linuxsw"
 			}
 
-			if err = raidArray.Create(ctx, raidType); err != nil {
+			raidArray := model.RaidArray{
+				Name:  GetString(cmd, "name"),
+				Level: GetString(cmd, "raid-level"),
+			}
+
+			switch raidType {
+			case "linuxsw":
+				blockDeviceFiles := GetStringSlice(cmd, "devices")
+
+				blockDevices, err := model.NewBlockDevices(blockDeviceFiles...)
+				if err != nil {
+					logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", blockDeviceFiles)
+				}
+
+				raidArray.Devices = blockDevices
+			case "hardware":
+				var blockDeviceIDs []int
+
+				for _, d := range GetStringSlice(cmd, "devices") {
+					intBlockDevice, err := strconv.Atoi(d)
+					if err != nil {
+						logger.Fatalw("failed to convert device id string to int", "err", err, "blockDeviceID", d)
+					}
+
+					blockDeviceIDs = append(blockDeviceIDs, intBlockDevice)
+				}
+
+				// TODO(splaspood) Handle looking up devices using ironlib/mvcli to generate this list?
+				blockDevices, err := model.NewBlockDevicesFromPhysicalDeviceIDs(blockDeviceIDs...)
+				if err != nil {
+					logger.Fatalw("failed to gather block devices from physical ids", "err", err, "devices", blockDeviceIDs)
+				}
+
+				raidArray.Devices = blockDevices
+			default:
+				err := model.InvalidRaidTypeError(raidType)
+				if err != nil {
+					logger.Fatalw("invalid raid type", "err", err, "raidType", raidType)
+				}
+			}
+
+			if err := raidArray.Create(ctx, raidType); err != nil {
 				logger.Fatalw("failed to create raid array", "err", err, "array", raidArray)
 			}
 		}

@@ -50,14 +50,13 @@ func (a *RaidArray) Create(ctx context.Context, raidType string) (err error) {
 
 	switch raidType {
 	case "linuxsw":
-		err = a.CreateLinux(ctx)
+		return a.CreateLinux(ctx)
 	case "hardware":
-		err = a.CreateHardware(ctx)
+		return a.CreateHardware(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
+		return
 	}
-
-	return
 }
 
 func (a *RaidArray) DeleteLinux(ctx context.Context) (out string, err error) {
@@ -68,14 +67,13 @@ func (a *RaidArray) DeleteLinux(ctx context.Context) (out string, err error) {
 func (a *RaidArray) Delete(ctx context.Context, raidType string) (out string, err error) {
 	switch raidType {
 	case "linuxsw":
-		out, err = a.DeleteLinux(ctx)
+		return a.DeleteLinux(ctx)
 	case "hardware":
-		out, err = a.DeleteHardware(ctx)
+		return a.DeleteHardware(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
+		return
 	}
-
-	return
 }
 
 func (a *RaidArray) CreateLinux(ctx context.Context) (err error) {

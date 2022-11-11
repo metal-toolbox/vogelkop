@@ -41,7 +41,7 @@ type contextKey string
 
 var contextLoggerKey = contextKey("logger")
 
-func NewContextWithLogger(l *zap.SugaredLogger, existingCtx context.Context) context.Context {
+func NewContextWithLogger(existingCtx context.Context, l *zap.SugaredLogger) context.Context {
 	ctx := context.WithValue(existingCtx, contextLoggerKey, l)
 	return ctx
 }

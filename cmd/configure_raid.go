@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -14,66 +15,16 @@ var configureRaidCmd = &cobra.Command{
 	Short: "Configures various types of RAID",
 	Long:  "Configures various types of RAID",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := command.NewContextWithLogger(logger, cmd.Context())
+		ctx := command.NewContextWithLogger(cmd.Context(), logger)
+		raidType := GetString(cmd, "raid-type")
+		if raidType == "" {
+			raidType = "linuxsw"
+		}
 
 		if GetBool(cmd, "delete") {
-			raidArray := model.RaidArray{
-				Name: GetString(cmd, "name"),
-			}
-
-			if out, err := raidArray.Delete(ctx, GetString(cmd, "raid-type")); err != nil {
-				logger.Fatalw("failed to create raid array", "err", err, "array", raidArray, "output", out)
-			}
+			deleteArray(ctx, raidType, GetString(cmd, "name"))
 		} else {
-			raidType := GetString(cmd, "raid-type")
-			if raidType == "" {
-				raidType = "linuxsw"
-			}
-
-			raidArray := model.RaidArray{
-				Name:  GetString(cmd, "name"),
-				Level: GetString(cmd, "raid-level"),
-			}
-
-			switch raidType {
-			case "linuxsw":
-				blockDeviceFiles := GetStringSlice(cmd, "devices")
-
-				blockDevices, err := model.NewBlockDevices(blockDeviceFiles...)
-				if err != nil {
-					logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", blockDeviceFiles)
-				}
-
-				raidArray.Devices = blockDevices
-			case "hardware":
-				var blockDeviceIDs []int
-
-				for _, d := range GetStringSlice(cmd, "devices") {
-					intBlockDevice, err := strconv.Atoi(d)
-					if err != nil {
-						logger.Fatalw("failed to convert device id string to int", "err", err, "blockDeviceID", d)
-					}
-
-					blockDeviceIDs = append(blockDeviceIDs, intBlockDevice)
-				}
-
-				// TODO(splaspood) Handle looking up devices using ironlib/mvcli to generate this list?
-				blockDevices, err := model.NewBlockDevicesFromPhysicalDeviceIDs(blockDeviceIDs...)
-				if err != nil {
-					logger.Fatalw("failed to gather block devices from physical ids", "err", err, "devices", blockDeviceIDs)
-				}
-
-				raidArray.Devices = blockDevices
-			default:
-				err := model.InvalidRaidTypeError(raidType)
-				if err != nil {
-					logger.Fatalw("invalid raid type", "err", err, "raidType", raidType)
-				}
-			}
-
-			if err := raidArray.Create(ctx, raidType); err != nil {
-				logger.Fatalw("failed to create raid array", "err", err, "array", raidArray)
-			}
+			createArray(ctx, GetString(cmd, "name"), raidType, GetString(cmd, "raid-level"), GetStringSlice(cmd, "devices"))
 		}
 	},
 }
@@ -91,4 +42,69 @@ func init() {
 	markFlagAsRequired(configureRaidCmd, "name")
 
 	rootCmd.AddCommand(configureRaidCmd)
+}
+
+func deleteArray(ctx context.Context, raidType, arrayName string) {
+	raidArray := model.RaidArray{
+		Name: arrayName,
+	}
+
+	if out, err := raidArray.Delete(ctx, raidType); err != nil {
+		logger.Fatalw("failed to create raid array", "err", err, "array", raidArray, "output", out)
+	}
+}
+
+func createArray(ctx context.Context, arrayName, raidType, raidLevel string, arrayDevices []string) {
+	if raidType == "" {
+		raidType = "linuxsw"
+	}
+
+	raidArray := model.RaidArray{
+		Name:  arrayName,
+		Level: raidLevel,
+	}
+
+	raidArray.Devices = processDevices(arrayDevices, raidType)
+
+	if err := raidArray.Create(ctx, raidType); err != nil {
+		logger.Fatalw("failed to create raid array", "err", err, "array", raidArray)
+	}
+}
+
+func processDevices(arrayDevices []string, raidType string) []*model.BlockDevice {
+	switch raidType {
+	case "linuxsw":
+		blockDevices, err := model.NewBlockDevices(arrayDevices...)
+		if err != nil {
+			logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", arrayDevices)
+		}
+
+		return blockDevices
+	case "hardware":
+		var blockDeviceIDs []int
+
+		for _, d := range arrayDevices {
+			intBlockDevice, err := strconv.Atoi(d)
+			if err != nil {
+				logger.Fatalw("failed to convert device id string to int", "err", err, "blockDeviceID", d)
+			}
+
+			blockDeviceIDs = append(blockDeviceIDs, intBlockDevice)
+		}
+
+		// TODO(splaspood) Handle looking up devices using ironlib/mvcli to generate this list?
+		blockDevices, err := model.NewBlockDevicesFromPhysicalDeviceIDs(blockDeviceIDs...)
+		if err != nil {
+			logger.Fatalw("failed to gather block devices from physical ids", "err", err, "devices", blockDeviceIDs)
+		}
+
+		return blockDevices
+	default:
+		err := model.InvalidRaidTypeError(raidType)
+		if err != nil {
+			logger.Fatalw("invalid raid type", "err", err, "raidType", raidType)
+		}
+
+		return nil
+	}
 }

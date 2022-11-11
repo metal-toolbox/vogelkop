@@ -14,7 +14,7 @@ var configureRaidCmd = &cobra.Command{
 	Short: "Configures various types of RAID",
 	Long:  "Configures various types of RAID",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := command.NewContextWithLogger(logger)
+		ctx := command.NewContextWithLogger(logger, cmd.Context())
 
 		if GetBool(cmd, "delete") {
 			raidArray := model.RaidArray{

@@ -126,27 +126,28 @@ func (a *RaidArray) CreateHardware(ctx context.Context) (err error) {
 	return err
 }
 
-func (a *RaidArray) DeleteHardware(ctx context.Context) (out string, err error) {
+func (a *RaidArray) DeleteHardware(ctx context.Context) error {
 	logrusLogger, err := command.ZapToLogrus(ctx)
 	if err != nil {
-		return
+		return err
 	}
 
 	device, err := ironlib.New(logrusLogger)
 	if err != nil {
-		return
+		return err
 	}
 
 	hardware, err := device.GetInventory(ctx, true)
 	if err != nil {
-		return
+		return err
 	}
 
 	for _, sc := range hardware.StorageControllers {
 		if sc.Vendor == common.VendorMarvell {
-			vds, verr := actions.ListVirtualDisks(ctx, sc)
-			if verr != nil {
-				return out, verr
+			var vds []*common.VirtualDisk
+			vds, err = actions.ListVirtualDisks(ctx, sc)
+			if err != nil {
+				return err
 			}
 
 			for _, vd := range vds {
@@ -156,12 +157,11 @@ func (a *RaidArray) DeleteHardware(ctx context.Context) (out string, err error) 
 					}
 
 					err = actions.DestroyVirtualDisk(ctx, sc, options)
-					return out, err
+					return err
 				}
 			}
 		}
 	}
 
-	err = VirtualDiskNotFoundError(a)
-	return out, err
+	return VirtualDiskNotFoundError(a)
 }

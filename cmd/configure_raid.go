@@ -74,31 +74,9 @@ func createArray(ctx context.Context, arrayName, raidType, raidLevel string, arr
 func processDevices(arrayDevices []string, raidType string) []*model.BlockDevice {
 	switch raidType {
 	case "linuxsw":
-		blockDevices, err := model.NewBlockDevices(arrayDevices...)
-		if err != nil {
-			logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", arrayDevices)
-		}
-
-		return blockDevices
+		return processDevicesLinuxSw(arrayDevices)
 	case "hardware":
-		var blockDeviceIDs []int
-
-		for _, d := range arrayDevices {
-			intBlockDevice, err := strconv.Atoi(d)
-			if err != nil {
-				logger.Fatalw("failed to convert device id string to int", "err", err, "blockDeviceID", d)
-			}
-
-			blockDeviceIDs = append(blockDeviceIDs, intBlockDevice)
-		}
-
-		// TODO(splaspood) Handle looking up devices using ironlib/mvcli to generate this list?
-		blockDevices, err := model.NewBlockDevicesFromPhysicalDeviceIDs(blockDeviceIDs...)
-		if err != nil {
-			logger.Fatalw("failed to gather block devices from physical ids", "err", err, "devices", blockDeviceIDs)
-		}
-
-		return blockDevices
+		return processDevicesHardware(arrayDevices)
 	default:
 		err := model.InvalidRaidTypeError(raidType)
 		if err != nil {
@@ -107,4 +85,34 @@ func processDevices(arrayDevices []string, raidType string) []*model.BlockDevice
 
 		return nil
 	}
+}
+
+func processDevicesLinuxSw(arrayDevices []string) []*model.BlockDevice {
+	blockDevices, err := model.NewBlockDevices(arrayDevices...)
+	if err != nil {
+		logger.Fatalw("Failed to GetBlockDevices", "err", err, "devices", arrayDevices)
+	}
+
+	return blockDevices
+}
+
+func processDevicesHardware(arrayDevices []string) []*model.BlockDevice {
+	var blockDeviceIDs []int
+
+	for _, d := range arrayDevices {
+		intBlockDevice, err := strconv.Atoi(d)
+		if err != nil {
+			logger.Fatalw("failed to convert device id string to int", "err", err, "blockDeviceID", d)
+		}
+
+		blockDeviceIDs = append(blockDeviceIDs, intBlockDevice)
+	}
+
+	// TODO(splaspood) Handle looking up devices using ironlib/mvcli to generate this list?
+	blockDevices, err := model.NewBlockDevicesFromPhysicalDeviceIDs(blockDeviceIDs...)
+	if err != nil {
+		logger.Fatalw("failed to gather block devices from physical ids", "err", err, "devices", blockDeviceIDs)
+	}
+
+	return blockDevices
 }

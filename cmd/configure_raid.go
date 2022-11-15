@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
@@ -18,7 +19,7 @@ var configureRaidCmd = &cobra.Command{
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
 		raidType := GetString(cmd, "raid-type")
 		if raidType == "" {
-			raidType = "linuxsw"
+			raidType = common.SlugRAIDImplLinuxSoftware
 		}
 
 		if GetBool(cmd, "delete") {
@@ -30,7 +31,7 @@ var configureRaidCmd = &cobra.Command{
 }
 
 func init() {
-	configureRaidCmd.PersistentFlags().String("raid-type", "linuxsw", "RAID Type (linuxsw,hardware)")
+	configureRaidCmd.PersistentFlags().String("raid-type", common.SlugRAIDImplLinuxSoftware, "RAID Type (linuxsw,hardware)")
 	configureRaidCmd.PersistentFlags().Bool("delete", false, "Delete virtual disk")
 
 	configureRaidCmd.PersistentFlags().StringSlice("devices", []string{}, "List of underlying physical block devices.")
@@ -56,7 +57,7 @@ func deleteArray(ctx context.Context, raidType, arrayName string) {
 
 func createArray(ctx context.Context, arrayName, raidType, raidLevel string, arrayDevices []string) {
 	if raidType == "" {
-		raidType = "linuxsw"
+		raidType = common.SlugRAIDImplLinuxSoftware
 	}
 
 	raidArray := model.RaidArray{
@@ -73,9 +74,9 @@ func createArray(ctx context.Context, arrayName, raidType, raidLevel string, arr
 
 func processDevices(arrayDevices []string, raidType string) []*model.BlockDevice {
 	switch raidType {
-	case "linuxsw":
+	case common.SlugRAIDImplLinuxSoftware:
 		return processDevicesLinuxSw(arrayDevices)
-	case "hardware":
+	case common.SlugRAIDImplHardware:
 		return processDevicesHardware(arrayDevices)
 	default:
 		err := model.InvalidRaidTypeError(raidType)

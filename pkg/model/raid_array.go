@@ -69,7 +69,7 @@ func (a *RaidArray) Delete(ctx context.Context, raidType string) (out string, er
 	case "linuxsw":
 		return a.DeleteLinux(ctx)
 	case "hardware":
-		return a.DeleteHardware(ctx)
+		return "", a.DeleteHardware(ctx)
 	default:
 		err = InvalidRaidTypeError(raidType)
 		return

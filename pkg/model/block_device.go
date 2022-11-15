@@ -92,5 +92,8 @@ func (b BlockDevice) Validate() bool {
 		return m&os.ModeDevice != 0
 	}
 
+	// If the user did not spec a ControllerPhysicalDeviceID OR a File we
+	// return false.  This 'error' condition should be caught before calling
+	// this function by the cli side of things.
 	return false
 }

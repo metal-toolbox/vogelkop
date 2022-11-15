@@ -11,6 +11,7 @@ import (
 	diskfs "github.com/diskfs/go-diskfs"
 	losetup "github.com/freddierice/go-losetup/v2"
 
+	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
@@ -183,7 +184,7 @@ func TestConfigureRaid(t *testing.T) {
 				}
 
 				// Apply the partition to the block device
-				if err := r.Create(ctx, "linuxsw"); err != nil {
+				if err := r.Create(ctx, common.SlugRAIDImplLinuxSoftware); err != nil {
 					t.Error(err)
 				}
 
@@ -197,7 +198,7 @@ func TestConfigureRaid(t *testing.T) {
 
 			// Disable any active raid arrays
 			for _, r := range tc.RaidArrays {
-				if out, err := r.Delete(ctx, "linuxsw"); err != nil {
+				if out, err := r.Delete(ctx, common.SlugRAIDImplLinuxSoftware); err != nil {
 					t.Log(out)
 					t.Error(err)
 				}

@@ -94,20 +94,7 @@ func (a *RaidArray) CreateLinux(ctx context.Context) (err error) {
 }
 
 func (a *RaidArray) CreateHardware(ctx context.Context) (err error) {
-	logrusLogger, err := command.ZapToLogrus(ctx)
-	if err != nil {
-		return
-	}
-
-	device, err := ironlib.New(logrusLogger)
-	if err != nil {
-		return
-	}
-
-	hardware, err := device.GetInventory(ctx, true)
-	if err != nil {
-		return
-	}
+	hardware, err := getIronlibInventory(ctx)
 
 	options := &model.CreateVirtualDiskOptions{
 		RaidMode:        a.Level,
@@ -127,17 +114,7 @@ func (a *RaidArray) CreateHardware(ctx context.Context) (err error) {
 }
 
 func (a *RaidArray) DeleteHardware(ctx context.Context) error {
-	logrusLogger, err := command.ZapToLogrus(ctx)
-	if err != nil {
-		return err
-	}
-
-	device, err := ironlib.New(logrusLogger)
-	if err != nil {
-		return err
-	}
-
-	hardware, err := device.GetInventory(ctx, true)
+	hardware, err := getIronlibInventory(ctx)
 	if err != nil {
 		return err
 	}
@@ -164,4 +141,57 @@ func (a *RaidArray) DeleteHardware(ctx context.Context) error {
 	}
 
 	return VirtualDiskNotFoundError(a)
+}
+
+func ListVirtualDisks(ctx context.Context, raidType string) (virtualDisks []*common.VirtualDisk, err error) {
+	switch raidType {
+	case common.SlugRAIDImplLinuxSoftware:
+		return listVirtualDisksLinux(ctx)
+	case common.SlugRAIDImplHardware:
+		return listVirtualDisksHardware(ctx)
+	default:
+		err = InvalidRaidTypeError(raidType)
+		return
+	}
+}
+
+func listVirtualDisksLinux(_ context.Context) (virtualDisks []*common.VirtualDisk, err error) {
+	// TODO(splaspood) Implement VD listing for mdadm
+	// mdadm --misc --detail --export /dev/md/<name>*
+	// Seems on my test ubuntu 20.04 host these end up named /dev/md/ROOT_0 (that _0)
+	return
+}
+
+func listVirtualDisksHardware(ctx context.Context) (virtualDisks []*common.VirtualDisk, err error) {
+	hardware, err := getIronlibInventory(ctx)
+
+	for _, sc := range hardware.StorageControllers {
+		if sc.Vendor == common.VendorMarvell {
+			virtualDisks, err = actions.ListVirtualDisks(ctx, sc)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+func getIronlibInventory(ctx context.Context) (hardware *common.Device, err error) {
+	logrusLogger, err := command.ZapToLogrus(ctx)
+	if err != nil {
+		return
+	}
+
+	device, err := ironlib.New(logrusLogger)
+	if err != nil {
+		return
+	}
+
+	hardware, err = device.GetInventory(ctx, true)
+	if err != nil {
+		return
+	}
+
+	return
 }

@@ -11,48 +11,26 @@ import (
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
 
-var configureRaidCmd = &cobra.Command{
-	Use:   "configure-raid",
-	Short: "Configures various types of RAID",
-	Long:  "Configures various types of RAID",
+var createRaidCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Creates a VirtualDisk from one or more PhysicalDisk(s)",
+	Long:  "Creates a VirtualDisk from one or more PhysicalDisk(s)",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
-		raidType := GetString(cmd, "raid-type")
-		if raidType == "" {
-			raidType = common.SlugRAIDImplLinuxSoftware
-		}
-
-		if GetBool(cmd, "delete") {
-			deleteArray(ctx, raidType, GetString(cmd, "name"))
-		} else {
-			createArray(ctx, GetString(cmd, "name"), raidType, GetString(cmd, "raid-level"), GetStringSlice(cmd, "devices"))
-		}
+		raidType := getRaidType(cmd)
+		createArray(ctx, GetString(cmd, "name"), raidType, GetString(cmd, "raid-level"), GetStringSlice(cmd, "devices"))
 	},
 }
 
 func init() {
-	configureRaidCmd.PersistentFlags().String("raid-type", common.SlugRAIDImplLinuxSoftware, "RAID Type (linuxsw,hardware)")
-	configureRaidCmd.PersistentFlags().Bool("delete", false, "Delete virtual disk")
+	createRaidCmd.PersistentFlags().StringSlice("devices", []string{}, "List of underlying physical block devices.")
+	markFlagAsRequired(createRaidCmd, "devices")
+	createRaidCmd.PersistentFlags().String("raid-level", "1", "RAID Level")
+	markFlagAsRequired(createRaidCmd, "raid-level")
+	createRaidCmd.PersistentFlags().String("name", "unknown", "RAID Volume Name")
+	markFlagAsRequired(createRaidCmd, "name")
 
-	configureRaidCmd.PersistentFlags().StringSlice("devices", []string{}, "List of underlying physical block devices.")
-	markFlagAsRequired(configureRaidCmd, "devices")
-
-	configureRaidCmd.PersistentFlags().String("raid-level", "1", "RAID Level")
-
-	configureRaidCmd.PersistentFlags().String("name", "unknown", "RAID Volume Name")
-	markFlagAsRequired(configureRaidCmd, "name")
-
-	rootCmd.AddCommand(configureRaidCmd)
-}
-
-func deleteArray(ctx context.Context, raidType, arrayName string) {
-	raidArray := model.RaidArray{
-		Name: arrayName,
-	}
-
-	if out, err := raidArray.Delete(ctx, raidType); err != nil {
-		logger.Fatalw("failed to create raid array", "err", err, "array", raidArray, "output", out)
-	}
+	raidCmd.AddCommand(createRaidCmd)
 }
 
 func createArray(ctx context.Context, arrayName, raidType, raidLevel string, arrayDevices []string) {

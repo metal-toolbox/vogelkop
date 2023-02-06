@@ -6,7 +6,7 @@ require (
 	github.com/Sytten/logrus-zap-hook v0.1.0
 	github.com/bmc-toolbox/common v0.0.0-20221115135648-0b584f504396
 	github.com/freddierice/go-losetup/v2 v2.0.1
-	github.com/metal-toolbox/ironlib v0.2.2
+	github.com/metal-toolbox/ironlib v0.2.3-0.20230206185255-3b909d86df88
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	go.uber.org/zap v1.23.0
@@ -22,7 +22,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/xattr v0.4.9 // indirect
 	github.com/r3labs/diff/v2 v2.15.1 // indirect
-	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

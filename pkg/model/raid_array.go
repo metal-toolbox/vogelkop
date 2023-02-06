@@ -9,6 +9,7 @@ import (
 	"github.com/metal-toolbox/ironlib/actions"
 	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/vogelkop/internal/command"
+	"github.com/sirupsen/logrus"
 )
 
 type RaidArray struct {
@@ -106,7 +107,13 @@ func (a *RaidArray) CreateHardware(ctx context.Context) (err error) {
 	// TODO(splaspood) We should pass the storage controller down here vs assuming
 	for _, sc := range hardware.StorageControllers {
 		if sc.Vendor == common.VendorMarvell {
-			err = actions.CreateVirtualDisk(ctx, sc, options)
+			var sca *actions.StorageControllerAction
+			sca, err = getStorageControllerAction(ctx)
+			if err != nil {
+				return err
+			}
+
+			err = sca.CreateVirtualDisk(ctx, sc, options)
 		}
 	}
 
@@ -122,7 +129,13 @@ func (a *RaidArray) DeleteHardware(ctx context.Context) error {
 	for _, sc := range hardware.StorageControllers {
 		if sc.Vendor == common.VendorMarvell {
 			var vds []*common.VirtualDisk
-			vds, err = actions.ListVirtualDisks(ctx, sc)
+			var sca *actions.StorageControllerAction
+			sca, err = getStorageControllerAction(ctx)
+			if err != nil {
+				return err
+			}
+
+			vds, err = sca.ListVirtualDisks(ctx, sc)
 			if err != nil {
 				return err
 			}
@@ -133,7 +146,13 @@ func (a *RaidArray) DeleteHardware(ctx context.Context) error {
 						VirtualDiskID: a.ControllerVirtualDiskID,
 					}
 
-					err = actions.DestroyVirtualDisk(ctx, sc, options)
+					var sca *actions.StorageControllerAction
+					sca, err = getStorageControllerAction(ctx)
+					if err != nil {
+						return err
+					}
+
+					err = sca.DestroyVirtualDisk(ctx, sc, options)
 					return err
 				}
 			}
@@ -155,10 +174,27 @@ func ListVirtualDisks(ctx context.Context, raidType string) (virtualDisks []*com
 	}
 }
 
+func ListPhysicalDisks(ctx context.Context, raidType string) (physicalDisks []*common.Drive, err error) {
+	switch raidType {
+	case common.SlugRAIDImplLinuxSoftware:
+		return listPhysicalDisksLinux(ctx)
+	case common.SlugRAIDImplHardware:
+		return listPhysicalDisksHardware(ctx)
+	default:
+		err = InvalidRaidTypeError(raidType)
+		return
+	}
+}
+
 func listVirtualDisksLinux(_ context.Context) (virtualDisks []*common.VirtualDisk, err error) {
 	// TODO(splaspood) Implement VD listing for mdadm
 	// mdadm --misc --detail --export /dev/md/<name>*
 	// Seems on my test ubuntu 20.04 host these end up named /dev/md/ROOT_0 (that _0)
+	return
+}
+
+func listPhysicalDisksLinux(_ context.Context) (physicalDisks []*common.Drive, err error) {
+	// TODO(splaspood) Implement PD listing for mdadm/noraid
 	return
 }
 
@@ -167,9 +203,31 @@ func listVirtualDisksHardware(ctx context.Context) (virtualDisks []*common.Virtu
 
 	for _, sc := range hardware.StorageControllers {
 		if sc.Vendor == common.VendorMarvell {
-			virtualDisks, err = actions.ListVirtualDisks(ctx, sc)
+			var sca *actions.StorageControllerAction
+			sca, err = getStorageControllerAction(ctx)
 			if err != nil {
 				return
+			}
+
+			virtualDisks, err = sca.ListVirtualDisks(ctx, sc)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+func listPhysicalDisksHardware(ctx context.Context) (physicalDisks []*common.Drive, err error) {
+	hardware, err := getIronlibInventory(ctx)
+
+	for _, sc := range hardware.StorageControllers {
+		if sc.Vendor == common.VendorMarvell {
+			for _, drive := range hardware.Drives {
+				if drive.StorageControllerDriveID >= 0 {
+					physicalDisks = append(physicalDisks, drive)
+				}
 			}
 		}
 	}
@@ -193,5 +251,16 @@ func getIronlibInventory(ctx context.Context) (hardware *common.Device, err erro
 		return
 	}
 
+	return
+}
+
+func getStorageControllerAction(ctx context.Context) (sca *actions.StorageControllerAction, err error) {
+	var logrusLogger *logrus.Logger
+	logrusLogger, err = command.ZapToLogrus(ctx)
+	if err != nil {
+		return
+	}
+
+	sca = actions.NewStorageControllerAction(logrusLogger)
 	return
 }

@@ -13,16 +13,12 @@ var raidCmd = &cobra.Command{
 
 func init() {
 	raidCmd.PersistentFlags().String("raid-type", common.SlugRAIDImplLinuxSoftware, "RAID Type (linuxsw,hardware)")
-	// markFlagAsRequired(raidCmd, "raid-type")
 
 	rootCmd.AddCommand(raidCmd)
 }
 
 func getRaidType(cmd *cobra.Command) string {
 	raidType := GetString(cmd, "raid-type")
-	if raidType == "" {
-		raidType = common.SlugRAIDImplLinuxSoftware
-	}
 	return raidType
 }
 

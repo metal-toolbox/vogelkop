@@ -21,11 +21,3 @@ func getRaidType(cmd *cobra.Command) string {
 	raidType := GetString(cmd, "raid-type")
 	return raidType
 }
-
-func getRaidObjectType(cmd *cobra.Command) string {
-	raidObjectType := GetString(cmd, "object-type")
-	if raidObjectType == "" {
-		raidObjectType = "vd"
-	}
-	return raidObjectType
-}

@@ -17,7 +17,7 @@ var listRaidCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
 		raidType := getRaidType(cmd)
-		raidObjectType := getRaidObjectType(cmd)
+		raidObjectType := GetString(cmd, "object-type")
 
 		switch raidObjectType {
 		case "vd":

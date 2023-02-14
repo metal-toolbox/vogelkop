@@ -223,11 +223,13 @@ func listPhysicalDisksHardware(ctx context.Context) (physicalDisks []*common.Dri
 	hardware, err := getIronlibInventory(ctx)
 
 	for _, sc := range hardware.StorageControllers {
-		if sc.Vendor == common.VendorMarvell {
-			for _, drive := range hardware.Drives {
-				if drive.StorageControllerDriveID >= 0 {
-					physicalDisks = append(physicalDisks, drive)
-				}
+		if sc.Vendor != common.VendorMarvell {
+			continue
+		}
+
+		for _, drive := range hardware.Drives {
+			if drive.StorageControllerDriveID >= 0 {
+				physicalDisks = append(physicalDisks, drive)
 			}
 		}
 	}

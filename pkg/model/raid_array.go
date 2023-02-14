@@ -249,9 +249,6 @@ func getIronlibInventory(ctx context.Context) (hardware *common.Device, err erro
 	}
 
 	hardware, err = device.GetInventory(ctx, true)
-	if err != nil {
-		return
-	}
 
 	return
 }

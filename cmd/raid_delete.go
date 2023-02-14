@@ -15,7 +15,7 @@ var deleteRaidCmd = &cobra.Command{
 	Long:  "Deletes a VirtualDisk (RAID array)",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
-		raidType := getRaidType(cmd)
+		raidType := GetString(cmd, "raid-type")
 		deleteArray(ctx, raidType, GetString(cmd, "name"))
 	},
 }

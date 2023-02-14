@@ -16,8 +16,3 @@ func init() {
 
 	rootCmd.AddCommand(raidCmd)
 }
-
-func getRaidType(cmd *cobra.Command) string {
-	raidType := GetString(cmd, "raid-type")
-	return raidType
-}

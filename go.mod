@@ -6,7 +6,7 @@ require (
 	github.com/Sytten/logrus-zap-hook v0.1.0
 	github.com/bmc-toolbox/common v0.0.0-20221115135648-0b584f504396
 	github.com/freddierice/go-losetup/v2 v2.0.1
-	github.com/metal-toolbox/ironlib v0.2.3-0.20230206185255-3b909d86df88
+	github.com/metal-toolbox/ironlib v0.2.5-0.20230306152347-c0c56991baa3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	go.uber.org/zap v1.23.0
@@ -28,9 +28,9 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	golang.org/x/exp v0.0.0-20221114191408-850992195362 // indirect
-	golang.org/x/net v0.2.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/djherbis/times.v1 v1.3.0 // indirect

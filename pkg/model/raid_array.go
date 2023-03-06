@@ -222,15 +222,9 @@ func listVirtualDisksHardware(ctx context.Context) (virtualDisks []*common.Virtu
 func listPhysicalDisksHardware(ctx context.Context) (physicalDisks []*common.Drive, err error) {
 	hardware, err := getIronlibInventory(ctx)
 
-	for _, sc := range hardware.StorageControllers {
-		if sc.Vendor != common.VendorMarvell {
-			continue
-		}
-
-		for _, drive := range hardware.Drives {
-			if drive.StorageControllerDriveID >= 0 {
-				physicalDisks = append(physicalDisks, drive)
-			}
+	for _, drive := range hardware.Drives {
+		if drive.StorageControllerDriveID >= 0 {
+			physicalDisks = append(physicalDisks, drive)
 		}
 	}
 
@@ -248,7 +242,9 @@ func getIronlibInventory(ctx context.Context) (hardware *common.Device, err erro
 		return
 	}
 
-	hardware, err = device.GetInventory(ctx, true)
+	hardware, err = device.GetInventory(ctx,
+		actions.WithDynamicCollection(),
+		actions.WithDisabledCollectorUtilities([]model.CollectorUtility{"hdparm"}))
 
 	return
 }

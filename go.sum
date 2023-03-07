@@ -220,6 +220,8 @@ github.com/metal-toolbox/ironlib v0.2.4-0.20230228154145-e953a742055e h1:V9+EyvN
 github.com/metal-toolbox/ironlib v0.2.4-0.20230228154145-e953a742055e/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
 github.com/metal-toolbox/ironlib v0.2.4-0.20230228154351-931df0471fdd h1:D8RQqJC4lka009n00TpwM02IiPkIwIwxTwdFNK8/WAM=
 github.com/metal-toolbox/ironlib v0.2.4-0.20230228154351-931df0471fdd/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
+github.com/metal-toolbox/ironlib v0.2.4 h1:Ye3e2SY3YBJJqIIG7mWWTDpKmH18R3grELIu0d7TfW0=
+github.com/metal-toolbox/ironlib v0.2.4/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
 github.com/metal-toolbox/ironlib v0.2.5-0.20230228184209-77d5f1fdb60e h1:ORfScSBGuglhpoF0Suv8se84C9ecydjgmhqvUZsgAj0=
 github.com/metal-toolbox/ironlib v0.2.5-0.20230228184209-77d5f1fdb60e/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
 github.com/metal-toolbox/ironlib v0.2.5-0.20230228184547-eb5ba996f6c8 h1:8aboK5/pRXzNvottFK8nSoM2y7qSrp+SpB+kHiKVSso=
@@ -232,6 +234,8 @@ github.com/metal-toolbox/ironlib v0.2.5-0.20230303164034-e33dfeee9ce1 h1:5zfyftg
 github.com/metal-toolbox/ironlib v0.2.5-0.20230303164034-e33dfeee9ce1/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
 github.com/metal-toolbox/ironlib v0.2.5-0.20230306152347-c0c56991baa3 h1:cWw2rchn4HP7rMlfYC6F2Yl6QHIG0IGspJSVUp/Pei0=
 github.com/metal-toolbox/ironlib v0.2.5-0.20230306152347-c0c56991baa3/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
+github.com/metal-toolbox/ironlib v0.2.5 h1:un+QgZWYe5b9lZZbtPMspSyoK2P3a1rw+5daz7pUF7g=
+github.com/metal-toolbox/ironlib v0.2.5/go.mod h1:vywoREorRcBGmLTcJzjpPLHYDLTXLe8KazaXtLmVkFc=
 github.com/mibk/dupl v1.0.0/go.mod h1:pCr4pNxxIbFGvtyCOi0c7LVjmV6duhKWV+ex5vh38ME=
 github.com/pierrec/lz4 v2.3.0+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/pierrec/lz4 v2.6.1+incompatible h1:9UY3+iC23yxF0UfGaYrGplQ+79Rg+h/q9FV9ix19jjM=

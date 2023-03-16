@@ -2,7 +2,7 @@ steps:
   - plugins:
       # You'll need to use the git+ssh, the linter requires the nice name
       # - ssh://git@github.com/equinixmetal/github-releases-download-buildkite-plugin#v1.0.0:
-      - equinixmetal/github-releases-download#v1.0.0:
+      - equinixmetal/github-releases-download#v0.0.1:
           github_org: metal-toolbox
           repo: vogelkop
           binary_name: vogelkop

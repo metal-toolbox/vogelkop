@@ -244,7 +244,9 @@ func getIronlibInventory(ctx context.Context) (hardware *common.Device, err erro
 
 	hardware, err = device.GetInventory(ctx,
 		actions.WithDynamicCollection(),
-		actions.WithDisabledCollectorUtilities([]model.CollectorUtility{"hdparm"}))
+		actions.WithDisabledCollectorUtilities([]model.CollectorUtility{"hdparm"}),
+		actions.WithTraceLevel(),
+	)
 
 	return
 }

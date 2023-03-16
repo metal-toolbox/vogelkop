@@ -1,11 +1,14 @@
 steps:
-  - plugins:
-      # You'll need to use the git+ssh, the linter requires the nice name
-      # - ssh://git@github.com/equinixmetal/github-releases-download-buildkite-plugin#v1.0.0:
-      - equinixmetal/github-releases-download#v0.0.1:
-          github_org: metal-toolbox
-          repo: vogelkop
-          binary_name: vogelkop
-          filter: linux-amd64
-  - trigger: "vogelkop"
-    if: build.branch == "main" || build.tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+[-staging]*\$/
+  - label: ":golang: get vogelkop-amd64 binary"
+    key: vogelkop
+    plugins:
+    - ssh://git@github.com/equinixmetal/github-releases-download-buildkite-plugin#v0.0.1:
+        github_org: metal-toolbox
+        repo: vogelkop
+        binary_name: vogelkop
+        filter: linux_amd64
+    - ssh://git@github.com/equinixmetal/ssm-buildkite-plugin#v1.0.3:
+        parameters:
+          GITHUB_PAT: /buildkite/github/personal-access-token/v1
+  # - trigger: "vogelkop"
+  #   if: build.branch == "main" || build.tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+[-staging]*\$/

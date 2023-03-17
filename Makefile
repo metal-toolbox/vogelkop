@@ -13,10 +13,11 @@ test: lint
 	CGO_ENABLED=0 go test -timeout 1m -v -covermode=atomic ./...
 
 build:
-	GOOS=linux GOARCH=amd64 go build -o alloy \
+	GOOS=linux GOARCH=amd64 go build -o vogelkop \
 	   -ldflags \
 		"-X $(LDFLAG_LOCATION).GitCommit=$(GIT_COMMIT) \
          -X $(LDFLAG_LOCATION).GitBranch=$(GIT_BRANCH) \
          -X $(LDFLAG_LOCATION).GitSummary=$(GIT_SUMMARY) \
          -X $(LDFLAG_LOCATION).Version=$(VERSION) \
          -X $(LDFLAG_LOCATION).BuildDate=$(BUILD_DATE)"
+

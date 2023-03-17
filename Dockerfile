@@ -1,6 +1,8 @@
-FROM ghcr.io/equinixmetal/ironlib:v0.2.4
+ARG IRONLIB_IMAGE=ghcr.io/metal-toolbox/ironlib:v0.2.5
+FROM $IRONLIB_IMAGE
 
-COPY vogelkop /vogelkop
+COPY vogelkop /usr/sbin/vogelkop
+RUN chmod 755 /usr/sbin/vogelkop
 
-ENTRYPOINT ["/vogelkop"]
+ENTRYPOINT ["/usr/sbin/vogelkop"]
 CMD ["--help"]

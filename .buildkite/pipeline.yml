@@ -14,7 +14,7 @@
 #   #   if: build.branch == "main" || build.tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+[-staging]*\$/
 
 steps:
-  - trigger: "vogelkop-inband"
+  - trigger: "vogelkop-docker"
     if: build.branch == "main" || build.tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+[-staging]*\$/
     build:
       env:

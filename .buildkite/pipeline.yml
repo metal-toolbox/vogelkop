@@ -1,6 +1,6 @@
 steps:
   - trigger: "vogelkop-docker"
-    if: build.branch == "main" || build.tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+[-staging]*/
+    # if: build.branch == "main" || build.tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+[-staging]*/
     build:
       env:
         VOGELKOP_TAG: "${BUILDKITE_TAG}"

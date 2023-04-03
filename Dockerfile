@@ -1,4 +1,4 @@
-ARG IRONLIB_IMAGE=ghcr.io/metal-toolbox/ironlib:v0.2.5
+ARG IRONLIB_IMAGE=ghcr.io/metal-toolbox/ironlib@sha256:a2237782191cd00fed7e8c2b4e81fe58b52f2a90446621d3459a0f514419aab9
 FROM $IRONLIB_IMAGE
 
 COPY vogelkop /usr/sbin/vogelkop

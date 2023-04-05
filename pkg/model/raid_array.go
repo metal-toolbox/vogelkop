@@ -200,6 +200,9 @@ func listPhysicalDisksLinux(_ context.Context) (physicalDisks []*common.Drive, e
 
 func listVirtualDisksHardware(ctx context.Context) (virtualDisks []*common.VirtualDisk, err error) {
 	hardware, err := getIronlibInventory(ctx)
+	if err != nil {
+		return
+	}
 
 	for _, sc := range hardware.StorageControllers {
 		if sc.Vendor == common.VendorMarvell {

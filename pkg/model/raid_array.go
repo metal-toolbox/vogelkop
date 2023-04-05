@@ -221,6 +221,9 @@ func listVirtualDisksHardware(ctx context.Context) (virtualDisks []*common.Virtu
 
 func listPhysicalDisksHardware(ctx context.Context) (physicalDisks []*common.Drive, err error) {
 	hardware, err := getIronlibInventory(ctx)
+	if err != nil {
+		return
+	}
 
 	for _, drive := range hardware.Drives {
 		if drive.StorageControllerDriveID >= 0 {

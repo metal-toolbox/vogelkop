@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
+	"os"
 	"os/exec"
 
 	zaphook "github.com/Sytten/logrus-zap-hook"
@@ -56,7 +56,7 @@ func LoggerValueFromContext(ctx context.Context) *zap.SugaredLogger {
 func ZapToLogrus(ctx context.Context) (ll *logrus.Logger, err error) {
 	ll = logrus.New()
 	ll.ReportCaller = true
-	ll.SetOutput(io.Discard)
+	ll.SetOutput(os.Stderr)
 	sugaredLogger := LoggerValueFromContext(ctx)
 	zapLogger := sugaredLogger.Desugar()
 	hook, err := zaphook.NewZapHook(zapLogger)

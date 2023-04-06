@@ -8,7 +8,7 @@ require (
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/metal-toolbox/ironlib v0.2.6
 	github.com/sirupsen/logrus v1.9.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	go.uber.org/zap v1.23.0
 )
 
@@ -38,7 +38,7 @@ require (
 
 require (
 	github.com/diskfs/go-diskfs v1.2.0
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect

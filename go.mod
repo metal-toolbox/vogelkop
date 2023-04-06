@@ -9,7 +9,7 @@ require (
 	github.com/metal-toolbox/ironlib v0.2.6
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	go.uber.org/zap v1.23.0
+	go.uber.org/zap v1.24.0
 )
 
 require (

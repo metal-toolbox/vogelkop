@@ -33,7 +33,7 @@ func prepareTestDisk(size int) (loopdev losetup.Device, diskImg string, err erro
 
 	diskSize := int64(size) * 1024 * 1024
 
-	_, err = diskfs.Create(diskImg, diskSize, diskfs.Raw)
+	_, err = diskfs.Create(diskImg, diskSize, diskfs.Raw, 512)
 	if err != nil {
 		return
 	}

@@ -20,6 +20,7 @@ var (
 func init() {
 	cobra.OnInitialize(initLogging)
 	rootCmd.PersistentFlags().Bool("debug", false, "Debug Mode")
+	rootCmd.PersistentFlags().Bool("dryrun", false, "Dry Run Mode")
 }
 
 func initLogging() {

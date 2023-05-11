@@ -27,8 +27,6 @@ builds:
 
 archives:
   - id: vogelkop
-    format: tar.gz
-    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
 
 checksum:
   name_template: "checksums.txt"

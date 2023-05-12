@@ -1,7 +1,0 @@
-steps:
-  - trigger: "vogelkop-docker"
-    build:
-      env:
-        VOGELKOP_TAG: "${BUILDKITE_TAG}"
-        VOGELKOP_COMMIT: "${BUILDKITE_COMMIT}"
-        VOGELKOP_BRANCH: "${BUILDKITE_BRANCH}"

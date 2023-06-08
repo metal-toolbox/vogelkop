@@ -25,6 +25,42 @@ builds:
       - -X github.com/metal-toolbox/version.date={{.Date}}
       - -X github.com/metal-toolbox/version.builtBy=goreleaser
 
+dockers:
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-amd64"
+      - "ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-arm64"
+      - "ghcr.io/metal-toolbox/{{.ProjectName}}:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+
+docker_manifests:
+  - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}
+    image_templates:
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-amd64
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}-arm64
+  - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:latest
+    image_templates:
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-amd64
+      - ghcr.io/metal-toolbox/{{.ProjectName}}:latest-arm64
+
 archives:
   - id: vogelkop
 
@@ -55,6 +91,15 @@ signs:
     artifacts: all
     output: true
 
+docker_signs:
+  - cmd: cosign
+    args:
+      - "sign"
+      - "--oidc-issuer=https://token.actions.githubusercontent.com"
+      - "${artifact}"
+    artifacts: all
+    output: true
+    
 sboms:
   - artifacts: archive
   - id: source

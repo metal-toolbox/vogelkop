@@ -7,7 +7,7 @@ require (
 	github.com/bmc-toolbox/common v0.0.0-20230220061748-93ff001f4a1d
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/metal-toolbox/ironlib v0.2.9
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	go.uber.org/zap v1.24.0
 )

@@ -1,4 +1,4 @@
-GOBIN ?= go
+GOBINARY ?= go
 GOARCH ?= amd64
 
 LDFLAG_LOCATION := github.com/metal-toolbox/vogelkop/internal/version
@@ -12,10 +12,10 @@ lint:
 	golangci-lint run --config .golangci.yml --timeout=5m --out-${NO_FUTURE}format colored-line-number
 
 test: lint
-	CGO_ENABLED=0 $(GOBIN) test -timeout 1m -v -covermode=atomic ./...
+	CGO_ENABLED=0 $(GOBINARY) test -timeout 1m -v -covermode=atomic ./...
 
 build:
-	GOOS=linux GOARCH=$(GOARCH) $(GOBIN) build -o vogelkop \
+	GOOS=linux GOARCH=$(GOARCH) $(GOBINARY) build -o vogelkop \
 	   -ldflags \
 		"-X $(LDFLAG_LOCATION).GitCommit=$(GIT_COMMIT) \
          -X $(LDFLAG_LOCATION).GitBranch=$(GIT_BRANCH) \

@@ -1,13 +1,12 @@
 GOBIN ?= go
 GOARCH ?= amd64
 
-env:
-	LDFLAG_LOCATION := github.com/metal-toolbox/vogelkop/internal/version
-	GIT_COMMIT  := $(shell git rev-parse --short HEAD)
-	GIT_BRANCH  := $(shell git symbolic-ref -q --short HEAD)
-	GIT_SUMMARY := $(shell git describe --tags --dirty --always)
-	VERSION     := $(shell git describe --tags 2> /dev/null)
-	BUILD_DATE  := $(shell date +%s)
+LDFLAG_LOCATION := github.com/metal-toolbox/vogelkop/internal/version
+GIT_COMMIT  := $(shell git rev-parse --short HEAD)
+GIT_BRANCH  := $(shell git symbolic-ref -q --short HEAD)
+GIT_SUMMARY := $(shell git describe --tags --dirty --always)
+VERSION     := $(shell git describe --tags 2> /dev/null)
+BUILD_DATE  := $(shell date +%s)
 
 lint:
 	golangci-lint run --config .golangci.yml --timeout=5m --out-${NO_FUTURE}format colored-line-number
@@ -23,4 +22,3 @@ build:
          -X $(LDFLAG_LOCATION).GitSummary=$(GIT_SUMMARY) \
          -X $(LDFLAG_LOCATION).Version=$(VERSION) \
          -X $(LDFLAG_LOCATION).BuildDate=$(BUILD_DATE)"
-

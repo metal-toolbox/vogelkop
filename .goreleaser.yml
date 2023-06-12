@@ -38,6 +38,8 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - dependencies/.gitignore
   - use: buildx
     goos: linux
     goarch: arm64
@@ -50,6 +52,8 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - dependencies/.gitignore
 
 docker_manifests:
   - name_template: ghcr.io/metal-toolbox/{{.ProjectName}}:{{.Tag}}

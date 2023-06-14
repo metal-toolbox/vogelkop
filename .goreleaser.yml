@@ -97,6 +97,8 @@ docker_signs:
   - cmd: cosign
     args:
       - "sign"
+      - "--yes"
+      - "--recursive"
       - "--oidc-issuer=https://token.actions.githubusercontent.com"
       - "${artifact}"
     artifacts: all

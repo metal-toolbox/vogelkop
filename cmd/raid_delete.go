@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -30,6 +31,11 @@ func init() {
 func deleteArray(ctx context.Context, raidType, arrayName string) {
 	raidArray := model.RaidArray{
 		Name: arrayName,
+	}
+
+	// If arrayName is actually an integer, populate that as the ControllerVirtualDiskID
+	if id, err := strconv.Atoi(arrayName); err == nil {
+		raidArray.ControllerVirtualDiskID = id
 	}
 
 	if out, err := raidArray.Delete(ctx, raidType); err != nil {

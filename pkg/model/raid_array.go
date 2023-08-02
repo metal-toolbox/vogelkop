@@ -141,7 +141,7 @@ func (a *RaidArray) DeleteHardware(ctx context.Context) error {
 			}
 
 			for _, vd := range vds {
-				if vd.Name == a.Name {
+				if vd.Name == a.Name || vd.ID == strconv.Itoa(a.ControllerVirtualDiskID) {
 					options := &model.DestroyVirtualDiskOptions{
 						VirtualDiskID: a.ControllerVirtualDiskID,
 					}

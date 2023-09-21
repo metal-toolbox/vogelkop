@@ -34,7 +34,7 @@ jobs:
       - uses: anchore/sbom-action/download-syft@v0.14.3
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4.4.0

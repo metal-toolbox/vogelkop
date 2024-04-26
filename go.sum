@@ -7,6 +7,8 @@ github.com/bmc-toolbox/common v0.0.0-20230220061748-93ff001f4a1d h1:cQ30Wa8mhLzK
 github.com/bmc-toolbox/common v0.0.0-20230220061748-93ff001f4a1d/go.mod h1:SY//n1PJjZfbFbmAsB6GvEKbc7UXz3d30s3kWxfJQ/c=
 github.com/bmc-toolbox/common v0.0.0-20230717121556-5eb9915a8a5a h1:SjtoU9dE3bYfYnPXODCunMztjoDgnE3DVJCPLBqwz6Q=
 github.com/bmc-toolbox/common v0.0.0-20230717121556-5eb9915a8a5a/go.mod h1:SY//n1PJjZfbFbmAsB6GvEKbc7UXz3d30s3kWxfJQ/c=
+github.com/bmc-toolbox/common v0.0.0-20240426155832-c9882dbabcca h1:8hmbfSQ3cR0KXyAegrgmv9ic2eyDLdYl9j6819dkKb0=
+github.com/bmc-toolbox/common v0.0.0-20240426155832-c9882dbabcca/go.mod h1:SY//n1PJjZfbFbmAsB6GvEKbc7UXz3d30s3kWxfJQ/c=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

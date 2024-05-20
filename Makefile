@@ -17,7 +17,7 @@ build:
          -X $(LDFLAG_LOCATION).Version=$(VERSION) \
          -X $(LDFLAG_LOCATION).BuildDate=$(BUILD_DATE)"
 lint:
-	golangci-lint run --config .golangci.yml --timeout=5m --out-${NO_FUTURE}format colored-line-number
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.48.0 run --config .golangci.yml --timeout=5m --out-format colored-line-number
 
 test: lint
 	CGO_ENABLED=0 $(GOBINARY) test -timeout 1m -v -covermode=atomic ./...

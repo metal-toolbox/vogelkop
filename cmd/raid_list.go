@@ -14,7 +14,7 @@ var listRaidCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Lists existing VirtualDisk(s) (RAID arrays)",
 	Long:  "Lists existing VirtualDisk(s) (RAID arrays)",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
 		raidType := GetString(cmd, "raid-type")
 		raidObjectType := GetString(cmd, "object-type")

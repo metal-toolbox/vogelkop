@@ -51,7 +51,6 @@ func createPartitions(ctx context.Context, bd *model.BlockDevice, partitions []*
 		p.BlockDevice = bd
 
 		out, err = p.Create(ctx)
-
 		if err != nil {
 			return
 		}
@@ -68,7 +67,6 @@ func createPartitions(ctx context.Context, bd *model.BlockDevice, partitions []*
 		var partitionBd *model.BlockDevice
 
 		partitionBd, err = model.NewBlockDevice(p.GetLoopBlockDevice())
-
 		if err != nil {
 			return
 		}

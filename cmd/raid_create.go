@@ -15,7 +15,7 @@ var createRaidCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates a VirtualDisk from one or more PhysicalDisk(s)",
 	Long:  "Creates a VirtualDisk from one or more PhysicalDisk(s)",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
 		raidType := GetString(cmd, "raid-type")
 		createArray(ctx, GetString(cmd, "name"), raidType, GetString(cmd, "raid-level"), GetStringSlice(cmd, "devices"))

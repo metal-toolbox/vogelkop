@@ -1,6 +1,6 @@
 module github.com/metal-toolbox/vogelkop
 
-go 1.19
+go 1.22
 
 require (
 	github.com/Sytten/logrus-zap-hook v0.1.0

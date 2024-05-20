@@ -8,10 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bmc-toolbox/common"
 	diskfs "github.com/diskfs/go-diskfs"
 	losetup "github.com/freddierice/go-losetup/v2"
-
-	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )

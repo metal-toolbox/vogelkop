@@ -3,9 +3,8 @@ package cmd
 import (
 	"context"
 
-	"github.com/spf13/cobra"
-
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
 )
 
 var formatPartitionCmd = &cobra.Command{

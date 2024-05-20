@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
 )
 
 var listRaidCmd = &cobra.Command{

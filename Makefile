@@ -19,5 +19,8 @@ build:
 lint:
 	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57 run --config .golangci.yml --timeout=5m --out-format colored-line-number
 
+lint-fix:
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57 run --fix --config .golangci.yml --timeout=5m --out-format colored-line-number
+
 test: lint
 	CGO_ENABLED=0 $(GOBINARY) test -timeout 1m -v -covermode=atomic ./...

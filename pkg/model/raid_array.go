@@ -127,35 +127,39 @@ func (a *RaidArray) DeleteHardware(ctx context.Context) error {
 	}
 
 	for _, sc := range hardware.StorageControllers {
-		if sc.Vendor == common.VendorMarvell {
-			var vds []*common.VirtualDisk
+		if sc.Vendor != common.VendorMarvell {
+			continue
+		}
+
+		var vds []*common.VirtualDisk
+		var sca *actions.StorageControllerAction
+		sca, err = getStorageControllerAction(ctx)
+		if err != nil {
+			return err
+		}
+
+		vds, err = sca.ListVirtualDisks(ctx, sc)
+		if err != nil {
+			return err
+		}
+
+		for _, vd := range vds {
+			if vd.Name != a.Name && vd.ID != strconv.Itoa(a.ControllerVirtualDiskID) {
+				continue
+			}
+
+			options := &model.DestroyVirtualDiskOptions{
+				VirtualDiskID: a.ControllerVirtualDiskID,
+			}
+
 			var sca *actions.StorageControllerAction
 			sca, err = getStorageControllerAction(ctx)
 			if err != nil {
 				return err
 			}
 
-			vds, err = sca.ListVirtualDisks(ctx, sc)
-			if err != nil {
-				return err
-			}
-
-			for _, vd := range vds {
-				if vd.Name == a.Name || vd.ID == strconv.Itoa(a.ControllerVirtualDiskID) {
-					options := &model.DestroyVirtualDiskOptions{
-						VirtualDiskID: a.ControllerVirtualDiskID,
-					}
-
-					var sca *actions.StorageControllerAction
-					sca, err = getStorageControllerAction(ctx)
-					if err != nil {
-						return err
-					}
-
-					err = sca.DestroyVirtualDisk(ctx, sc, options)
-					return err
-				}
-			}
+			err = sca.DestroyVirtualDisk(ctx, sc, options)
+			return err
 		}
 	}
 
@@ -188,6 +192,7 @@ func ListPhysicalDisks(ctx context.Context, raidType string) (physicalDisks []*c
 
 func listVirtualDisksLinux(_ context.Context) (virtualDisks []*common.VirtualDisk, err error) {
 	// TODO(splaspood) Implement VD listing for mdadm
+
 	// mdadm --misc --detail --export /dev/md/<name>*
 	// Seems on my test ubuntu 20.04 host these end up named /dev/md/ROOT_0 (that _0)
 	return
@@ -205,17 +210,19 @@ func listVirtualDisksHardware(ctx context.Context) (virtualDisks []*common.Virtu
 	}
 
 	for _, sc := range hardware.StorageControllers {
-		if sc.Vendor == common.VendorMarvell {
-			var sca *actions.StorageControllerAction
-			sca, err = getStorageControllerAction(ctx)
-			if err != nil {
-				return
-			}
+		if sc.Vendor != common.VendorMarvell {
+			continue
+		}
 
-			virtualDisks, err = sca.ListVirtualDisks(ctx, sc)
-			if err != nil {
-				return
-			}
+		var sca *actions.StorageControllerAction
+		sca, err = getStorageControllerAction(ctx)
+		if err != nil {
+			return
+		}
+
+		virtualDisks, err = sca.ListVirtualDisks(ctx, sc)
+		if err != nil {
+			return
 		}
 	}
 

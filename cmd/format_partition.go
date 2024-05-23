@@ -3,16 +3,15 @@ package cmd
 import (
 	"context"
 
-	"github.com/spf13/cobra"
-
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
 )
 
 var formatPartitionCmd = &cobra.Command{
 	Use:   "format-partition",
 	Short: "Formats a partition",
 	Long:  "Formats a partition with your choice of filesystem",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		ctx := context.Background()
 
 		if GetString(cmd, "device") == "" && GetString(cmd, "filesystem-device") == "" {

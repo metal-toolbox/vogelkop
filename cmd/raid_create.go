@@ -4,18 +4,17 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/spf13/cobra"
-
 	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
+	"github.com/spf13/cobra"
 )
 
 var createRaidCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates a VirtualDisk from one or more PhysicalDisk(s)",
 	Long:  "Creates a VirtualDisk from one or more PhysicalDisk(s)",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		ctx := command.NewContextWithLogger(cmd.Context(), logger)
 		raidType := GetString(cmd, "raid-type")
 		createArray(ctx, GetString(cmd, "name"), raidType, GetString(cmd, "raid-level"), GetStringSlice(cmd, "devices"))
@@ -76,7 +75,7 @@ func processDevicesLinuxSw(arrayDevices []string) []*model.BlockDevice {
 }
 
 func processDevicesHardware(arrayDevices []string) []*model.BlockDevice {
-	var blockDeviceIDs []int
+	blockDeviceIDs := make([]int, 0, len(arrayDevices))
 
 	for _, d := range arrayDevices {
 		intBlockDevice, err := strconv.Atoi(d)

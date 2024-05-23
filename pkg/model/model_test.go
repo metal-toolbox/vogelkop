@@ -8,10 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bmc-toolbox/common"
 	diskfs "github.com/diskfs/go-diskfs"
 	losetup "github.com/freddierice/go-losetup/v2"
-
-	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/vogelkop/internal/command"
 	"github.com/metal-toolbox/vogelkop/pkg/model"
 )
@@ -51,7 +50,6 @@ func createPartitions(ctx context.Context, bd *model.BlockDevice, partitions []*
 		p.BlockDevice = bd
 
 		out, err = p.Create(ctx)
-
 		if err != nil {
 			return
 		}
@@ -68,7 +66,6 @@ func createPartitions(ctx context.Context, bd *model.BlockDevice, partitions []*
 		var partitionBd *model.BlockDevice
 
 		partitionBd, err = model.NewBlockDevice(p.GetLoopBlockDevice())
-
 		if err != nil {
 			return
 		}

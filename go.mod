@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/Sytten/logrus-zap-hook v0.1.0
-	github.com/bmc-toolbox/common v0.0.0-20230717121556-5eb9915a8a5a
+	github.com/bmc-toolbox/common v0.0.0-20240510143200-3db7cecbb5a6
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/metal-toolbox/ironlib v0.2.17
 	github.com/sirupsen/logrus v1.9.3

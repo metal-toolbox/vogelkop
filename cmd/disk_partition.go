@@ -7,10 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var partitionDiskCmd = &cobra.Command{
-	Use:   "partition-disk",
-	Short: "Partitions a block device",
-	Long:  "Partitions a block device with a GPT table",
+var diskPartitionCommand = &cobra.Command{
+	Use:   "partition",
+	Short: "Partitions a disk with a GPT table",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, _ []string) {
 		ctx := context.Background()
@@ -37,8 +36,16 @@ var partitionDiskCmd = &cobra.Command{
 }
 
 func init() {
-	partitionDiskCmd.PersistentFlags().String("device", "/dev/sda", "Device to be partitioned")
-	markFlagAsRequired(partitionDiskCmd, "device")
-	partitionDiskCmd.PersistentFlags().StringSlice("partitions", []string{}, "Partition Definitions Name:Position:Size:Type")
-	rootCmd.AddCommand(partitionDiskCmd)
+	diskPartitionCommand.PersistentFlags().String("device", "/dev/sda", "Device to be partitioned")
+	markFlagAsRequired(diskPartitionCommand, "device")
+
+	diskPartitionCommand.PersistentFlags().StringSlice("partitions", []string{}, "Partition Definitions Name:Position:Size:Type")
+
+	diskCommand.AddCommand(diskPartitionCommand)
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:        "partition-disk",
+		Deprecated: "use \"disk partition\"",
+		Run:        diskPartitionCommand.Run,
+	})
 }

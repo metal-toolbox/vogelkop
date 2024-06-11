@@ -9,6 +9,7 @@ import (
 	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/ironlib"
 	"github.com/metal-toolbox/ironlib/actions"
+	"github.com/metal-toolbox/ironlib/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -72,6 +73,12 @@ func init() {
 
 			// Pick the most appropriate wipe based on the disk type and/or features supported
 			var wiper actions.DriveWiper
+			// nolint:gocritic // will have more cases soon, remove nolint then
+			switch drive.Protocol {
+			case "nvme":
+				wiper = utils.NewNvmeCmd(verbose)
+			}
+
 			if wiper == nil {
 				l.Fatal("failed find appropriate wiper drive")
 			}

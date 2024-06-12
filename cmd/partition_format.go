@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var formatPartitionCmd = &cobra.Command{
-	Use:   "format-partition",
+var partitionFormatPartitionCommand = &cobra.Command{
+	Use:   "format",
 	Short: "Formats a partition",
 	Long:  "Formats a partition with your choice of filesystem",
 	Run: func(cmd *cobra.Command, _ []string) {
@@ -49,15 +49,21 @@ var formatPartitionCmd = &cobra.Command{
 }
 
 func init() {
-	formatPartitionCmd.PersistentFlags().String("device", "", "Block device")
-	formatPartitionCmd.PersistentFlags().String("filesystem-device", "", "Filesystem Block device")
+	partitionFormatPartitionCommand.PersistentFlags().String("device", "", "Block device")
+	partitionFormatPartitionCommand.PersistentFlags().String("filesystem-device", "", "Filesystem Block device")
 
-	formatPartitionCmd.PersistentFlags().Uint("partition", 0, "Partition number")
+	partitionFormatPartitionCommand.PersistentFlags().Uint("partition", 0, "Partition number")
 
-	formatPartitionCmd.PersistentFlags().String("format", "ext4", "Filesystem to be applied to the partition")
-	markFlagAsRequired(formatPartitionCmd, "format")
+	partitionFormatPartitionCommand.PersistentFlags().String("format", "ext4", "Filesystem to be applied to the partition")
+	markFlagAsRequired(partitionFormatPartitionCommand, "format")
 
-	formatPartitionCmd.PersistentFlags().String("mount-point", "/", "Filesystem mount point")
-	formatPartitionCmd.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")
-	rootCmd.AddCommand(formatPartitionCmd)
+	partitionFormatPartitionCommand.PersistentFlags().String("mount-point", "/", "Filesystem mount point")
+	partitionFormatPartitionCommand.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")
+	partitionCommand.AddCommand(partitionFormatPartitionCommand)
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:        "format-partition",
+		Deprecated: "use \"partition format\"",
+		Run:        partitionFormatPartitionCommand.Run,
+	})
 }

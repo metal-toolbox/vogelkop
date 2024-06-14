@@ -25,6 +25,8 @@ github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLf
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/metal-toolbox/ironlib v0.2.18-0.20240611133518-3514176030a4 h1:kviHJsSwD3fJg4kUwgKLyo4AR07IEUUwmtGf66vdXFg=
 github.com/metal-toolbox/ironlib v0.2.18-0.20240611133518-3514176030a4/go.mod h1:WxsD+T5Vu223c34k55YfBCm/dZ8IjKj3Lt/C/6XVt1M=
+github.com/metal-toolbox/ironlib v0.2.18 h1:IlKf1lRnJFSQw2X59iSflnX+phM0IJrxhNVK6Valank=
+github.com/metal-toolbox/ironlib v0.2.18/go.mod h1:WxsD+T5Vu223c34k55YfBCm/dZ8IjKj3Lt/C/6XVt1M=
 github.com/pierrec/lz4/v4 v4.1.17 h1:kV4Ip+/hUBC+8T6+2EgburRtkE9ef4nbY3f4dFhGjMc=
 github.com/pierrec/lz4/v4 v4.1.17/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

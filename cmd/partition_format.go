@@ -61,9 +61,8 @@ func init() {
 	partitionFormatCommand.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")
 	partitionCommand.AddCommand(partitionFormatCommand)
 
-	rootCmd.AddCommand(&cobra.Command{
-		Use:        "format-partition",
-		Deprecated: "use \"partition format\"",
-		Run:        partitionFormatCommand.Run,
-	})
+	deprecated := *partitionFormatCommand
+	deprecated.Use = "format-partition"
+	deprecated.Deprecated = "use \"partition format\""
+	rootCmd.AddCommand(&deprecated)
 }

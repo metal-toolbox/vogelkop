@@ -43,9 +43,8 @@ func init() {
 
 	diskCommand.AddCommand(diskPartitionCommand)
 
-	rootCmd.AddCommand(&cobra.Command{
-		Use:        "partition-disk",
-		Deprecated: "use \"disk partition\"",
-		Run:        diskPartitionCommand.Run,
-	})
+	deprecated := *diskPartitionCommand
+	deprecated.Use = "partition-disk"
+	deprecated.Deprecated = "use \"disk partition\""
+	rootCmd.AddCommand(&deprecated)
 }

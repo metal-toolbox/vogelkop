@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var partitionFormatPartitionCommand = &cobra.Command{
+var partitionFormatCommand = &cobra.Command{
 	Use:   "format",
 	Short: "Formats a partition",
 	Long:  "Formats a partition with your choice of filesystem",
@@ -49,21 +49,20 @@ var partitionFormatPartitionCommand = &cobra.Command{
 }
 
 func init() {
-	partitionFormatPartitionCommand.PersistentFlags().String("device", "", "Block device")
-	partitionFormatPartitionCommand.PersistentFlags().String("filesystem-device", "", "Filesystem Block device")
+	partitionFormatCommand.PersistentFlags().String("device", "", "Block device")
+	partitionFormatCommand.PersistentFlags().String("filesystem-device", "", "Filesystem Block device")
 
-	partitionFormatPartitionCommand.PersistentFlags().Uint("partition", 0, "Partition number")
+	partitionFormatCommand.PersistentFlags().Uint("partition", 0, "Partition number")
 
-	partitionFormatPartitionCommand.PersistentFlags().String("format", "ext4", "Filesystem to be applied to the partition")
-	markFlagAsRequired(partitionFormatPartitionCommand, "format")
+	partitionFormatCommand.PersistentFlags().String("format", "ext4", "Filesystem to be applied to the partition")
+	markFlagAsRequired(partitionFormatCommand, "format")
 
-	partitionFormatPartitionCommand.PersistentFlags().String("mount-point", "/", "Filesystem mount point")
-	partitionFormatPartitionCommand.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")
-	partitionCommand.AddCommand(partitionFormatPartitionCommand)
+	partitionFormatCommand.PersistentFlags().String("mount-point", "/", "Filesystem mount point")
+	partitionFormatCommand.PersistentFlags().StringSlice("options", []string{}, "Filesystem creation options")
+	partitionCommand.AddCommand(partitionFormatCommand)
 
-	rootCmd.AddCommand(&cobra.Command{
-		Use:        "format-partition",
-		Deprecated: "use \"partition format\"",
-		Run:        partitionFormatPartitionCommand.Run,
-	})
+	deprecated := *partitionFormatCommand
+	deprecated.Use = "format-partition"
+	deprecated.Deprecated = "use \"partition format\""
+	rootCmd.AddCommand(&deprecated)
 }

@@ -18,11 +18,7 @@ builds:
       - "7"
     ldflags:
       - -s -w
-      - -X github.com/metal-toolbox/version.appName={{.ProjectName}}
-      - -X github.com/metal-toolbox/version.version={{.Summary}}
-      - -X github.com/metal-toolbox/version.commit={{.Commit}}
-      - -X github.com/metal-toolbox/version.date={{.Date}}
-      - -X github.com/metal-toolbox/version.builtBy=goreleaser
+      - -X github.com/metal-toolbox/vogelkop/internal/version.version={{.Summary}}
 
 dockers:
   - use: buildx

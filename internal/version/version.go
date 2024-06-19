@@ -2,7 +2,7 @@ package version
 
 var (
 	name    = "vogelkop"
-	version = "0.2.5"
+	version = "devel"
 )
 
 func Name() string {

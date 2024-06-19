@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/bmc-toolbox/common"
 	"github.com/metal-toolbox/ironlib"
@@ -32,9 +33,9 @@ func init() {
 				logger.With("error", err).Fatal("--timeout argument is invalid")
 			}
 
-			verbose, err := cmd.Flags().GetBool("verbose")
+			verbose, err := cmd.Flags().GetBool("debug")
 			if err != nil {
-				logger.With("error", err).Fatal("--verbose argument is invalid")
+				logger.With("error", err).Fatal("--debug argument is invalid")
 			}
 
 			driveName := args[0]
@@ -90,5 +91,6 @@ func init() {
 		},
 	}
 
+	diskCommand.PersistentFlags().Duration("timeout", 1*time.Minute, "Time to wait for wipe to complete")
 	diskCommand.AddCommand(cmd)
 }

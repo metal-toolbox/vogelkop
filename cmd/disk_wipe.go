@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bmc-toolbox/common"
@@ -15,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// nolint:gocyclo // easier to read in one big function I think
 func init() {
 	cmd := &cobra.Command{
 		Use:   "wipe /dev/disk",
@@ -74,10 +76,23 @@ func init() {
 
 			// Pick the most appropriate wipe based on the disk type and/or features supported
 			var wiper actions.DriveWiper
-			// nolint:gocritic // will have more cases soon, remove nolint then
 			switch drive.Protocol {
 			case "nvme":
 				wiper = utils.NewNvmeCmd(verbose)
+			case "sata":
+				// Lets figure out if the drive supports TRIM
+				var trim bool
+				for _, cap := range drive.Capabilities {
+					if strings.HasPrefix(cap.Description, "Data Set Management TRIM supported") {
+						trim = cap.Enabled
+						break
+					}
+				}
+
+				if trim {
+					// Drive supports TRIM, so we use blkdiscard
+					wiper = utils.NewBlkdiscardCmd(verbose)
+				}
 			}
 
 			if wiper == nil {

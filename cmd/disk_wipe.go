@@ -81,7 +81,10 @@ func init() {
 			}
 
 			if wiper == nil {
-				l.Fatal("failed find appropriate wiper drive")
+				l.WithFields(logrus.Fields{
+					"capabilities": drive.Capabilities,
+					"protocol":     drive.Protocol,
+				}).Fatal("failed find appropriate drive wiper")
 			}
 
 			err = wiper.WipeDrive(ctx, logger, drive)

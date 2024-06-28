@@ -8,7 +8,7 @@ require (
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/metal-toolbox/ironlib v0.3.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.26.0
 )
 

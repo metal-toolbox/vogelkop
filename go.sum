@@ -27,6 +27,8 @@ github.com/metal-toolbox/ironlib v0.2.18-0.20240611133518-3514176030a4 h1:kviHJs
 github.com/metal-toolbox/ironlib v0.2.18-0.20240611133518-3514176030a4/go.mod h1:WxsD+T5Vu223c34k55YfBCm/dZ8IjKj3Lt/C/6XVt1M=
 github.com/metal-toolbox/ironlib v0.2.18 h1:IlKf1lRnJFSQw2X59iSflnX+phM0IJrxhNVK6Valank=
 github.com/metal-toolbox/ironlib v0.2.18/go.mod h1:WxsD+T5Vu223c34k55YfBCm/dZ8IjKj3Lt/C/6XVt1M=
+github.com/metal-toolbox/ironlib v0.3.0 h1:qv41PG6g7P7jahbwGV4x+8IyaJ6Ew5tojlnpJTyG4Vs=
+github.com/metal-toolbox/ironlib v0.3.0/go.mod h1:WxsD+T5Vu223c34k55YfBCm/dZ8IjKj3Lt/C/6XVt1M=
 github.com/pierrec/lz4/v4 v4.1.17 h1:kV4Ip+/hUBC+8T6+2EgburRtkE9ef4nbY3f4dFhGjMc=
 github.com/pierrec/lz4/v4 v4.1.17/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

@@ -80,16 +80,26 @@ func init() {
 			case "nvme":
 				wiper = utils.NewNvmeCmd(verbose)
 			case "sata":
-				// Lets figure out if the drive supports TRIM
+				// Lets figure out the drive capabilities in an easier format
+				var sanitize bool
+				var esee bool
 				var trim bool
 				for _, cap := range drive.Capabilities {
-					if strings.HasPrefix(cap.Description, "Data Set Management TRIM supported") {
+					switch {
+					case cap.Description == "encryption supports enhanced erase":
+						esee = cap.Enabled
+					case cap.Description == "SANITIZE feature":
+						sanitize = cap.Enabled
+					case strings.HasPrefix(cap.Description, "Data Set Management TRIM supported"):
 						trim = cap.Enabled
-						break
 					}
 				}
 
-				if trim {
+				switch {
+				case sanitize || esee:
+					// Drive supports Sanitize or Enhanced Erase, so we use hdparm
+					wiper = utils.NewHdparmCmd(verbose)
+				case trim:
 					// Drive supports TRIM, so we use blkdiscard
 					wiper = utils.NewBlkdiscardCmd(verbose)
 				}

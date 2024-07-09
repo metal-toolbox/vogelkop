@@ -112,6 +112,8 @@ func init() {
 				}).Fatal("failed find appropriate drive wiper")
 			}
 
+			logger = logrus.New()
+			logger.SetLevel(logrus.DebugLevel)
 			err = wiper.WipeDrive(ctx, logger, drive)
 			if err != nil {
 				l.Fatal("failed to wipe drive")

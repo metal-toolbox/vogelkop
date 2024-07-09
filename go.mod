@@ -6,7 +6,7 @@ require (
 	github.com/Sytten/logrus-zap-hook v0.1.0
 	github.com/bmc-toolbox/common v0.0.0-20240510143200-3db7cecbb5a6
 	github.com/freddierice/go-losetup/v2 v2.0.1
-	github.com/metal-toolbox/ironlib v0.3.0
+	github.com/metal-toolbox/ironlib v0.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0

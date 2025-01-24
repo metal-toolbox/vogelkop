@@ -102,6 +102,9 @@ func init() {
 				case trim:
 					// Drive supports TRIM, so we use blkdiscard
 					wiper = utils.NewBlkdiscardCmd(verbose)
+				default:
+					// Drive does not support any preferred wipe method so we fall back to filling it up with zeros
+					wiper = utils.NewFillZeroCmd(verbose)
 				}
 			}
 

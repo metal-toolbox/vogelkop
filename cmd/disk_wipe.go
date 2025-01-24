@@ -79,7 +79,7 @@ func init() {
 			switch drive.Protocol {
 			case "nvme":
 				wiper = utils.NewNvmeCmd(verbose)
-			case "sata":
+			case "sata", "sas":
 				// Lets figure out the drive capabilities in an easier format
 				var sanitize bool
 				var esee bool

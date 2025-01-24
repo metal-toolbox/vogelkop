@@ -79,7 +79,7 @@ func init() {
 			switch drive.Protocol {
 			case "nvme":
 				wiper = utils.NewNvmeCmd(verbose)
-			case "sata":
+			case "sata", "sas":
 				// Lets figure out the drive capabilities in an easier format
 				var sanitize bool
 				var esee bool
@@ -102,6 +102,9 @@ func init() {
 				case trim:
 					// Drive supports TRIM, so we use blkdiscard
 					wiper = utils.NewBlkdiscardCmd(verbose)
+				default:
+					// Drive does not support any preferred wipe method so we fall back to filling it up with zeros
+					wiper = utils.NewFillZeroCmd(verbose)
 				}
 			}
 

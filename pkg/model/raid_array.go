@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/bmc-toolbox/common"
+	common "github.com/metal-toolbox/bmc-common"
 	"github.com/metal-toolbox/ironlib"
 	"github.com/metal-toolbox/ironlib/actions"
 	"github.com/metal-toolbox/ironlib/model"

@@ -23,23 +23,53 @@ var (
 	ErrDriveWiperNotFound = errors.New("failed to find appropriate drive wiper")
 )
 
+type diskWipeResult struct {
+	driveName string
+	err       error
+}
+
 func wipeDisks(ctx context.Context, drivesName []string, collector actions.DeviceManager, logger *logrus.Logger, verbose bool) {
 	inventory, err := collector.GetInventory(ctx, actions.WithDynamicCollection())
 	if err != nil {
 		logger.WithError(err).Fatal("exiting")
 	}
 
+	wipeResultsCh := make(chan *diskWipeResult, 1)
+	go func() {
+		// it's cleaner to get a summary of the result since there are a bunch of
+		// wiping progress logs.
+		var hasFailure bool
+		var resultMsg strings.Builder
+		for result := range wipeResultsCh {
+			if result.err != nil {
+				hasFailure = true
+				resultMsg.WriteString(fmt.Sprintf("Wiping %v failed: %v\n", result.driveName, result.err))
+				continue
+			}
+			resultMsg.WriteString(fmt.Sprintf("Wiping %v successed\n", result.driveName))
+		}
+		if hasFailure {
+			logger.Fatal(resultMsg.String())
+		}
+	}()
+
 	var wg sync.WaitGroup
 	wg.Add(len(drivesName))
 	for _, driveName := range drivesName {
 		go func() {
 			l := logger.WithField("drive", driveName)
-			if err := wipeOneDisk(ctx, inventory, driveName, &wg, verbose); err != nil {
+			err = wipeOneDisk(ctx, inventory, driveName, &wg, verbose)
+			wipeResultsCh <- &diskWipeResult{driveName, err}
+			if err != nil {
+				// we may want to see error message as soon as possible
 				l.Errorf("failed to wipe disk %v: error %v", driveName, err)
+				return
 			}
+			l.Infof("wipe drive %v done", driveName)
 		}()
 	}
 	wg.Wait()
+	close(wipeResultsCh)
 }
 
 // nolint:gocyclo // easier to read in one big function I think
@@ -113,8 +143,7 @@ func init() {
 				return errors.New("requires at least one arg") // nolint:goerr113
 			}
 
-			_, err := os.Open(args[0])
-			return err
+			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			timeout, err := cmd.Flags().GetDuration("timeout")

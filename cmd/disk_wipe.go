@@ -3,6 +3,7 @@ package cmd
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -24,8 +25,9 @@ var (
 )
 
 type diskWipeResult struct {
-	driveName string
-	err       error
+	DriveName string `json:"drive_name"`
+	Fail      bool   `json:"success"`
+	Err       string `json:"error,omitempty"`
 }
 
 func wipeDisks(ctx context.Context, drivesName []string, collector actions.DeviceManager, logger *logrus.Logger, verbose bool) {
@@ -36,20 +38,19 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 
 	wipeResultsCh := make(chan *diskWipeResult, 1)
 	go func() {
-		// it's cleaner to get a summary of the result since there are a bunch of
-		// wiping progress logs.
-		var hasFailure bool
-		var resultMsg strings.Builder
+		var failureResults []*diskWipeResult
 		for result := range wipeResultsCh {
-			if result.err != nil {
-				hasFailure = true
-				resultMsg.WriteString(fmt.Sprintf("Wiping %v failed: %v\n", result.driveName, result.err))
-				continue
+			if result.Fail {
+				failureResults = append(failureResults, result)
 			}
-			resultMsg.WriteString(fmt.Sprintf("Wiping %v successed\n", result.driveName))
 		}
-		if hasFailure {
-			logger.Fatal(resultMsg.String())
+		if len(failureResults) > 0 {
+			jsonData, marshalErr := json.Marshal(failureResults)
+			if marshalErr != nil {
+				logger.Fatalf("Error marshaling %v to JSON: %v", failureResults, marshalErr)
+				return
+			}
+			logger.Fatal(string(jsonData))
 		}
 	}()
 
@@ -59,7 +60,7 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 		go func() {
 			l := logger.WithField("drive", driveName)
 			err = wipeOneDisk(ctx, inventory, driveName, &wg, verbose)
-			wipeResultsCh <- &diskWipeResult{driveName, err}
+			wipeResultsCh <- &diskWipeResult{driveName, true, err.Error()}
 			if err != nil {
 				// we may want to see error message as soon as possible
 				l.Errorf("failed to wipe disk %v: error %v", driveName, err)

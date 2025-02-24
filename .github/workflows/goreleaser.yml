@@ -37,7 +37,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6.0.0
+        uses: goreleaser/goreleaser-action@v6.2.1
         with:
           args: release --clean
         env:

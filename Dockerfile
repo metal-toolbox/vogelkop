@@ -1,5 +1,5 @@
 ARG IRONLIB_REPO=ghcr.io/metal-toolbox
-ARG IRONLIB_TAG=v0.4.1@sha256:4df22ae09690a9ba5e3567868311f9bd172fc0ccb2ad19ffb3fac75a14d2919b
+ARG IRONLIB_TAG=v1.1.0@sha256:444c9b8f11887de2abf33b1ae182a03a42fb073cf8be24f3d26f862d84210e97
 FROM $IRONLIB_REPO/ironlib:$IRONLIB_TAG as intermediate
 
 COPY --chmod=755 vogelkop /usr/sbin/vogelkop

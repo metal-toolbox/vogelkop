@@ -24,10 +24,17 @@ var (
 	ErrDriveWiperNotFound = errors.New("failed to find appropriate drive wiper")
 )
 
+type wiperInfo struct {
+	DriveName    string               `json:"drive_name"`
+	Protocol     string               `json:"protocol"`
+	Capabilities []*common.Capability `json:"capabilities"` // empty when verbose is unset
+	Wiper        string               `json:"wiper"`
+	ElapsedTime  string               `json:"elapsed_time"`
+}
+
 type diskWipeResult struct {
-	DriveName string `json:"drive_name"`
-	Fail      bool   `json:"success"`
-	Err       string `json:"error,omitempty"`
+	WiperInfo *wiperInfo `json:"drive_name"`
+	Err       string     `json:"wipe_error,omitempty"`
 }
 
 func wipeDisks(ctx context.Context, drivesName []string, collector actions.DeviceManager, logger *logrus.Logger, verbose bool) {
@@ -36,62 +43,65 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 		logger.WithError(err).Fatal("exiting")
 	}
 
-	wipeResultsCh := make(chan *diskWipeResult, 1)
-	go func() {
-		var failureResults []*diskWipeResult
-		for result := range wipeResultsCh {
-			if result.Fail {
-				failureResults = append(failureResults, result)
-			}
-		}
-		if len(failureResults) > 0 {
-			jsonData, marshalErr := json.Marshal(failureResults)
-			if marshalErr != nil {
-				logger.Fatalf("Error marshaling %v to JSON: %v", failureResults, marshalErr)
-				return
-			}
-			logger.Fatal(string(jsonData))
-		}
-	}()
-
+	var wipeResults []*diskWipeResult
+	var hasFailure bool
 	var wg sync.WaitGroup
 	wg.Add(len(drivesName))
 	for _, driveName := range drivesName {
 		go func() {
 			l := logger.WithField("drive", driveName)
-			err = wipeOneDisk(ctx, inventory, driveName, &wg, verbose)
-			wipeResultsCh <- &diskWipeResult{driveName, true, err.Error()}
-			if err != nil {
-				// we may want to see error message as soon as possible
-				l.Errorf("failed to wipe disk %v: error %v", driveName, err)
-				return
+			drw := &diskWipeResult{
+				WiperInfo: &wiperInfo{DriveName: driveName},
 			}
-			l.Infof("wipe drive %v done", driveName)
+			startTime := time.Now()
+			if err := wipeOneDisk(ctx, inventory, drw, &wg, verbose); err != nil {
+				hasFailure = true
+				drw.Err = err.Error()
+				l.Errorf("failed to wipe disk %v: error %v", driveName, err)
+			} else {
+				l.Infof("wipe drive %v done", driveName)
+			}
+			drw.WiperInfo.ElapsedTime = fmt.Sprintf("%.2fs", time.Since(startTime).Seconds())
+			wipeResults = append(wipeResults, drw)
 		}()
 	}
 	wg.Wait()
-	close(wipeResultsCh)
+	wipeResultsJSON, marshalErr := json.MarshalIndent(wipeResults, "", "  ")
+	if marshalErr != nil {
+		logger.Fatalf("Error marshaling %v to JSON: %v", wipeResults, marshalErr)
+		return
+	}
+	if hasFailure {
+		logger.Fatal(string(wipeResultsJSON))
+	}
+	logger.Info(string(wipeResultsJSON))
 }
 
 // nolint:gocyclo // easier to read in one big function I think
-func wipeOneDisk(ctx context.Context, inventory *common.Device, driveName string, wg *sync.WaitGroup, verbose bool) error {
+func wipeOneDisk(ctx context.Context, inventory *common.Device, dwr *diskWipeResult, wg *sync.WaitGroup, verbose bool) error {
 	defer wg.Done()
 
 	var drive *common.Drive
 	for _, d := range inventory.Drives {
-		if d.LogicalName == driveName {
+		if d.LogicalName == dwr.WiperInfo.DriveName {
 			drive = d
 			break
 		}
 	}
+
 	if drive == nil {
 		return ErrDriveNotExist
 	}
 
+	dwr.WiperInfo.Protocol = drive.Protocol
+	if verbose {
+		dwr.WiperInfo.Capabilities = drive.Capabilities
+	}
 	// Pick the most appropriate wipe based on the disk type and/or features supported
 	var wiper actions.DriveWiper
 	switch drive.Protocol {
 	case "nvme":
+		dwr.WiperInfo.Wiper = "nvme"
 		wiper = utils.NewNvmeCmd(verbose)
 	case "sata", "sas":
 		// Lets figure out the drive capabilities in an easier format
@@ -112,12 +122,15 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, driveName string
 		switch {
 		case sanitize || esee:
 			// Drive supports Sanitize or Enhanced Erase, so we use hdparm
+			dwr.WiperInfo.Wiper = "hdparm"
 			wiper = utils.NewHdparmCmd(verbose)
 		case trim:
 			// Drive supports TRIM, so we use blkdiscard
+			dwr.WiperInfo.Wiper = "blkdiscard"
 			wiper = utils.NewBlkdiscardCmd(verbose)
 		default:
 			// Drive does not support any preferred wipe method so we fall back to filling it up with zeros
+			dwr.WiperInfo.Wiper = "fillzero"
 			wiper = utils.NewFillZeroCmd(verbose)
 		}
 	}

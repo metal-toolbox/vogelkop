@@ -32,13 +32,12 @@ type wiperInfo struct {
 	Result      string `json:"result"`
 }
 
-func wipeDisks(ctx context.Context, drivesName []string, collector actions.DeviceManager, logger *logrus.Logger, verbose bool) {
+func wipeDisks(ctx context.Context, drivesName []string, collector actions.DeviceManager, wipeResults []*wiperInfo, logger *logrus.Logger, logResultFilename string, verbose bool) {
 	inventory, err := collector.GetInventory(ctx, actions.WithDynamicCollection())
 	if err != nil {
 		logger.WithError(err).Fatal("exiting")
 	}
 
-	var wipeResults []*wiperInfo
 	var hasFailure bool
 	var wg sync.WaitGroup
 	wg.Add(len(drivesName))
@@ -50,7 +49,7 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 				Result: "success",
 			}
 			startTime := time.Now()
-			if err := wipeOneDisk(ctx, inventory, wi, &wg, verbose); err != nil {
+			if err = wipeOneDisk(ctx, inventory, wi, &wg, verbose); err != nil {
 				hasFailure = true
 				wi.Result = "failure"
 				l.Errorf("failed to wipe disk %v: error %v", driveName, err)
@@ -62,12 +61,25 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 		}()
 	}
 	wg.Wait()
-	wipeResultsJSON, marshalErr := json.MarshalIndent(wipeResults, "", "  ")
+	wipeResultsJSON, marshalErr := json.MarshalIndent(wipeResults, "", "  ") // pretty printing
 	if marshalErr != nil {
 		logger.Fatalf("Error marshaling %v to JSON: %v", wipeResults, marshalErr)
 	}
-	if hasFailure {
-		logger.Fatal(string(wipeResultsJSON))
+
+	if logResultFilename != "" {
+		file, err := os.Create(logResultFilename)
+		if err != nil {
+			logger.Fatalf("failed to create %v: %v", logResultFilename, err)
+		}
+		defer file.Close()
+
+		if _, err := file.Write(wipeResultsJSON); err != nil {
+			logger.Fatalf("failed to write result to %v: %v", logResultFilename, err)
+		}
+
+		if hasFailure {
+			logger.Fatal(string(wipeResultsJSON))
+		}
 	}
 	logger.Info(string(wipeResultsJSON))
 }
@@ -171,6 +183,11 @@ func init() {
 				logger.With("error", err).Fatal("--debug argument is invalid")
 			}
 
+			logResultFilename, err := cmd.Flags().GetString("output")
+			if err != nil {
+				logger.With("error", err).Fatal("--output argument is invalid")
+			}
+
 			logger := logrus.New()
 			logger.Formatter = new(logrus.TextFormatter)
 			if verbose {
@@ -181,6 +198,7 @@ func init() {
 			ctx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
 
+			var wipeResults []*wiperInfo
 			var drivesName []string
 			drivesNameMap := make(map[string]struct{})
 			// is regex better?
@@ -190,10 +208,18 @@ func init() {
 					// should we ignore errors and let inventory collector to handle errors like permission, I/O, os errors
 					// or handle file not exist error here is good enough?
 					logger.Warnf("invalid drive %v: %v", driveName, err)
+					wipeResults = append(wipeResults, &wiperInfo{
+						Disk:   driveName,
+						Result: "failure",
+					})
 					continue
 				}
 				if _, exists := drivesNameMap[driveName]; exists {
 					logger.Warnf("duplicate drive input %v", driveName)
+					wipeResults = append(wipeResults, &wiperInfo{
+						Disk:   driveName,
+						Result: "failure",
+					})
 					continue
 				}
 				drivesNameMap[driveName] = struct{}{}
@@ -205,10 +231,11 @@ func init() {
 				logger.WithError(err).Fatal("exiting")
 			}
 
-			wipeDisks(ctx, drivesName, collector, logger, verbose)
+			wipeDisks(ctx, drivesName, collector, wipeResults, logger, logResultFilename, verbose)
 		},
 	}
 
+	diskCommand.PersistentFlags().String("output", "", "log wiping results to the file with json format")
 	diskCommand.PersistentFlags().Duration("timeout", 1*time.Minute, "Time to wait for wipe to complete")
 	diskCommand.AddCommand(cmd)
 }

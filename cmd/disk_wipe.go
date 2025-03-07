@@ -56,7 +56,7 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 			} else {
 				l.Infof("wipe drive %v done", driveName)
 			}
-			wi.ElapsedTime = fmt.Sprintf("%.2fs", time.Since(startTime).Seconds())
+			wi.ElapsedTime = fmt.Sprintf("%d", int(time.Since(startTime).Round(time.Second).Seconds()))
 			wipeResults = append(wipeResults, wi)
 		}()
 	}
@@ -100,36 +100,71 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, wi *wiperInfo, w
 		return ErrDriveNotExist
 	}
 
-	var acts []string
 	// Pick the most appropriate wipe based on the disk type and/or features supported
 	var wiper actions.DriveWiper
 	switch drive.Protocol {
 	case "nvme":
-		wi.Method = "nvme"
+		var ber bool
+		var cer bool
+		for _, cap := range drive.Capabilities {
+			switch cap.Name {
+			case "ber":
+				ber = cap.Enabled
+			case "cer":
+				cer = cap.Enabled
+			}
+		}
+		if cer {
+			wi.Method = "sanitize"
+			wi.Action = "CryptoErase"
+		}
+		if ber {
+			wi.Method = "sanitize"
+			wi.Action = "BlockErase"
+		}
 		wiper = utils.NewNvmeCmd(verbose)
 	case "sata", "sas":
 		// Lets figure out the drive capabilities in an easier format
 		var sanitize bool
 		var esee bool
 		var trim bool
+		var eseu bool
+		var bee bool
+		var cse bool
 		for _, cap := range drive.Capabilities {
 			switch {
 			case cap.Description == "encryption supports enhanced erase":
-				acts = append(acts, "crypto")
 				esee = cap.Enabled
 			case cap.Description == "SANITIZE feature":
-				acts = append(acts, "sanitize")
 				sanitize = cap.Enabled
 			case strings.HasPrefix(cap.Description, "Data Set Management TRIM supported"):
-				acts = append(acts, "sanitize")
 				trim = cap.Enabled
+			case cap.Description == "BLOCK ERASE EXT":
+				bee = cap.Enabled
+			case cap.Description == "CRYPTO SCRAMBLE EXT":
+				cse = cap.Enabled
+			case strings.HasPrefix(cap.Description, "erase time:"):
+				eseu = strings.Contains(cap.Description, "enhanced")
 			}
 		}
 
 		switch {
 		case sanitize || esee:
+			// It is better if ironlib util can export an API to provide cap info, or
+			// WipeDrive can return methods/actions it uses:
+			// https://github.com/metal-toolbox/ironlib/blob/main/utils/hdparm.go#L217-L237
+			if sanitize && cse {
+				wi.Method = "sanitize"
+				wi.Action = "sanitize-crypto-scramble"
+			}
+			if sanitize && bee {
+				wi.Method = "sanitize"
+				wi.Action = "sanitize-block-erase"
+			}
+			if esee && eseu {
+				wi.Method = "security-erase-enhanced"
+			}
 			// Drive supports Sanitize or Enhanced Erase, so we use hdparm
-			wi.Method = "hdparm"
 			wiper = utils.NewHdparmCmd(verbose)
 		case trim:
 			// Drive supports TRIM, so we use blkdiscard
@@ -141,8 +176,6 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, wi *wiperInfo, w
 			wiper = utils.NewFillZeroCmd(verbose)
 		}
 	}
-
-	wi.Action = strings.Join(acts, "-")
 
 	if wiper == nil {
 		return fmt.Errorf("capabilities: %v, protocol: %v: %w", drive.Capabilities, drive.Protocol, ErrDriveWiperNotFound)

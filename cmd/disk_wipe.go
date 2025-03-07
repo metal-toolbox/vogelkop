@@ -28,7 +28,7 @@ type wiperInfo struct {
 	Disk        string `json:"disk"`
 	Action      string `json:"action"`
 	Method      string `json:"method"`
-	ElapsedTime string `json:"elapsed_time"`
+	ElapsedTime int    `json:"elapsed_time"`
 	Result      string `json:"result"`
 }
 
@@ -56,7 +56,7 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 			} else {
 				l.Infof("wipe drive %v done", driveName)
 			}
-			wi.ElapsedTime = fmt.Sprintf("%d", int(time.Since(startTime).Round(time.Second).Seconds()))
+			wi.ElapsedTime = int(time.Since(startTime).Round(time.Second).Seconds())
 			wipeResults = append(wipeResults, wi)
 		}()
 	}
@@ -106,21 +106,30 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, wi *wiperInfo, w
 	case "nvme":
 		var ber bool
 		var cer bool
+		var cese bool
 		for _, cap := range drive.Capabilities {
 			switch cap.Name {
 			case "ber":
 				ber = cap.Enabled
 			case "cer":
 				cer = cap.Enabled
+			case "cese":
+				cese = cap.Enabled
 			}
 		}
-		if cer {
+		switch {
+		case cer:
 			wi.Method = "sanitize"
 			wi.Action = "CryptoErase"
-		}
-		if ber {
+		case ber:
 			wi.Method = "sanitize"
 			wi.Action = "BlockErase"
+		case cese:
+			wi.Method = "format"
+			wi.Action = "CryptographicErase"
+		default:
+			wi.Method = "format"
+			wi.Action = "UserDataErase"
 		}
 		wiper = utils.NewNvmeCmd(verbose)
 	case "sata", "sas":
@@ -153,15 +162,14 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, wi *wiperInfo, w
 			// It is better if ironlib util can export an API to provide cap info, or
 			// WipeDrive can return methods/actions it uses:
 			// https://github.com/metal-toolbox/ironlib/blob/main/utils/hdparm.go#L217-L237
-			if sanitize && cse {
+			switch {
+			case sanitize && cse:
 				wi.Method = "sanitize"
 				wi.Action = "sanitize-crypto-scramble"
-			}
-			if sanitize && bee {
+			case sanitize && bee:
 				wi.Method = "sanitize"
 				wi.Action = "sanitize-block-erase"
-			}
-			if esee && eseu {
+			case esee && eseu:
 				wi.Method = "security-erase-enhanced"
 			}
 			// Drive supports Sanitize or Enhanced Erase, so we use hdparm
@@ -235,7 +243,7 @@ func init() {
 			var drivesName []string
 			drivesNameMap := make(map[string]struct{})
 			// is regex better?
-			for _, driveName := range strings.Split(args[0], ",") {
+			for _, driveName := range args {
 				_, err = os.Stat(driveName)
 				if err != nil {
 					// should we ignore errors and let inventory collector to handle errors like permission, I/O, os errors

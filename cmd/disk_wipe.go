@@ -28,7 +28,7 @@ type wiperInfo struct {
 	Disk        string `json:"disk"`
 	Action      string `json:"action"`
 	Method      string `json:"method"`
-	ElapsedTime string `json:"elapsed_time"`
+	ElapsedTime int    `json:"elapsed_time"`
 	Result      string `json:"result"`
 }
 
@@ -56,7 +56,7 @@ func wipeDisks(ctx context.Context, drivesName []string, collector actions.Devic
 			} else {
 				l.Infof("wipe drive %v done", driveName)
 			}
-			wi.ElapsedTime = fmt.Sprintf("%d", int(time.Since(startTime).Round(time.Second).Seconds()))
+			wi.ElapsedTime = int(time.Since(startTime).Round(time.Second).Seconds())
 			wipeResults = append(wipeResults, wi)
 		}()
 	}
@@ -106,21 +106,29 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, wi *wiperInfo, w
 	case "nvme":
 		var ber bool
 		var cer bool
+		var cese bool
 		for _, cap := range drive.Capabilities {
 			switch cap.Name {
 			case "ber":
 				ber = cap.Enabled
 			case "cer":
 				cer = cap.Enabled
+			case "cese":
+				cese = cap.Enabled
 			}
 		}
 		if cer {
 			wi.Method = "sanitize"
 			wi.Action = "CryptoErase"
-		}
-		if ber {
+		} else if ber {
 			wi.Method = "sanitize"
 			wi.Action = "BlockErase"
+		} else if cese {
+			wi.Method = "format"
+			wi.Action = "CryptographicErase"
+		} else {
+			wi.Method = "format"
+			wi.Action = "UserDataErase"
 		}
 		wiper = utils.NewNvmeCmd(verbose)
 	case "sata", "sas":
@@ -156,12 +164,10 @@ func wipeOneDisk(ctx context.Context, inventory *common.Device, wi *wiperInfo, w
 			if sanitize && cse {
 				wi.Method = "sanitize"
 				wi.Action = "sanitize-crypto-scramble"
-			}
-			if sanitize && bee {
+			} else if sanitize && bee {
 				wi.Method = "sanitize"
 				wi.Action = "sanitize-block-erase"
-			}
-			if esee && eseu {
+			} else if esee && eseu {
 				wi.Method = "security-erase-enhanced"
 			}
 			// Drive supports Sanitize or Enhanced Erase, so we use hdparm
@@ -235,7 +241,7 @@ func init() {
 			var drivesName []string
 			drivesNameMap := make(map[string]struct{})
 			// is regex better?
-			for _, driveName := range strings.Split(args[0], ",") {
+			for _, driveName := range args {
 				_, err = os.Stat(driveName)
 				if err != nil {
 					// should we ignore errors and let inventory collector to handle errors like permission, I/O, os errors

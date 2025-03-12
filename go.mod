@@ -7,14 +7,14 @@ require (
 	github.com/bmc-toolbox/common v0.0.0-20240806132831-ba8adc6a35e3
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/metal-toolbox/bmc-common v1.0.2
-	github.com/metal-toolbox/ironlib v1.1.0
+	github.com/metal-toolbox/ironlib v1.1.1
 	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0
 )
 
 require (
-	github.com/beevik/etree v1.4.1 // indirect
+	github.com/beevik/etree v1.5.0 // indirect
 	github.com/djherbis/times v1.6.0 // indirect
 	github.com/dselans/dmidecode v0.0.0-20180814053009-65c3f9d81910 // indirect
 	github.com/elliotwutingfeng/asciiset v0.0.0-20230602022725-51bbb787efab // indirect
@@ -30,9 +30,9 @@ require (
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 )
 
 require (

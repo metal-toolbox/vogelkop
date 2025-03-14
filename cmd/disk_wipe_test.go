@@ -285,7 +285,8 @@ func TestWiping(t *testing.T) {
 			}
 
 			logger := logrus.New()
-			wipeDisks(ctx, wipeDrives, collector, logger, true)
+			var wipeResults []*wiperInfo
+			wipeDisks(ctx, wipeDrives, collector, wipeResults, logger, "", true)
 			if err := verifyWipeSuccess(wipedDrives, unWipedDrives, fileContent); err != nil {
 				t.Errorf("failed to wipe drives: %v", err)
 			}

@@ -8,7 +8,7 @@ require (
 	github.com/freddierice/go-losetup/v2 v2.0.1
 	github.com/metal-toolbox/bmc-common v1.0.3
 	github.com/metal-toolbox/ironlib v1.1.2
-	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af
+	github.com/sirupsen/logrus v1.9.4-0.20241118143825-d1e633264448
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0
 )

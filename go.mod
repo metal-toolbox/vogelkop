@@ -2,8 +2,6 @@ module github.com/metal-toolbox/vogelkop
 
 go 1.23.0
 
-toolchain go1.24.1
-
 require (
 	github.com/Sytten/logrus-zap-hook v0.1.0
 	github.com/bmc-toolbox/common v0.0.0-20240806132831-ba8adc6a35e3

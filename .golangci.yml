@@ -43,10 +43,8 @@ linters:
   disable:
     - copyloopvar # requires go >=1.22
     - cyclop
-    - deadcode # deprecated
     - depguard
     - errname # maybe should be enabled
-    - exhaustivestruct # deprecated
     - exhaustruct
     - forbidigo
     - funlen
@@ -56,32 +54,26 @@ linters:
     - goconst
     - godot
     - godox
-    - golint # deprecated
-    - gomnd
-    - ifshort # deprecated
+    - gosec
     - inamedparam
     - interfacebloat
-    - interfacer # deprecated
     - intrange # requires go >=1.22
     - ireturn # should be enabled, ironlib needs some changes
     - lll # not previously enabled, ironlib and mctl both fail this
-    - maligned # deprecated
+    - mnd
     - nestif
     - nilnil
     - nlreturn
     - nolintlint
     - nonamedreturns # should be enabled, probably
-    - nosnakecase # deprecated
     - paralleltest
     - perfsprint
-    - scopelint # deprecated
-    - structcheck # deprecated
+    - recvcheck
     - tagliatelle
     - tenv # should be enabled
     - testpackage
     - testifylint # should be enabled
     - thelper # should be enabled
-    - varcheck # deprecated
     - varnamelen
     - wrapcheck
     - wsl
